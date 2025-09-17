@@ -23,8 +23,8 @@ public class TestingTeleop extends OpMode {
         posC = new PIDF(new PIDF.Weights(1f, 0f, 0.4f, 0, 0.75f, 0.2f));
         posC.setRateLimit(0.05f);
 
-        velC = new PIDF(new PIDF.Weights(0.1f, 0, 0.5f, 1, 0.75f, 0.15f))
-                .setRateLimit(0.05f);
+        velC = new PIDF(new PIDF.Weights(0.1f, 0, 0.5f, 1, 0.75f, 0.15f));
+        velC.options().ratelimit(0.05f);
     }
 
     void rs() {

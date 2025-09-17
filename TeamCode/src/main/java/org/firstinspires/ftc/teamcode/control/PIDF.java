@@ -21,22 +21,66 @@ public class PIDF implements IControlLoop<Float, Float, PIDF.Weights> {
         }
     }
 
+    public static class Options {
+        protected boolean rateLimited;
+        protected float rateLimit_seconds;
+
+        protected boolean deadbanded;
+        protected float deadband;
+
+        protected boolean clamp_integrators;
+        protected float integrator_clamp;
+
+        protected boolean bounded;
+        protected Vec2 bounds;
+
+        public Options() {
+            rateLimited = false;
+            deadbanded = false;
+            clamp_integrators = false;
+            bounded = false;
+            rateLimit_seconds = 0;
+            deadband = 0;
+            integrator_clamp = 0;
+            bounds = new Vec2(0, 0);
+        }
+
+        public Options ratelimit(float _ratelimit_seconds) {
+            rateLimited = true;
+            rateLimit_seconds = _ratelimit_seconds;
+            return this;
+        }
+
+        public Options deadband(float _deadband) {
+            deadbanded = true;
+            deadband = _deadband;
+            return this;
+        }
+
+        public Options integrator_clamp(float _clamp) {
+            integrator_clamp = _clamp;
+            clamp_integrators = true;
+            return this;
+        }
+    
+        public Options bound(Vec2 _bound) {
+            bounds = _bound;
+            bounded = true;
+            return this;
+        }
+    }
+
     Weights weights;
+    Options options;
 
     float accumulatedError;
     float previousError;
     ElapsedTime timer;
 
-    boolean bounded;
-    Vec2 bounds;
-
-    boolean rateLimited;
-    float rateLimit_seconds;
     float previousOutput;
 
     float previousFilteredDerivative;
     float target;
-
 
 
     @Override
@@ -49,19 +93,29 @@ public class PIDF implements IControlLoop<Float, Float, PIDF.Weights> {
         weights = _weights;
     }
 
+    public Options options() {return this.options;}
+
     @Override
-    public Float loop(Float x) {
+    public Float loop(Float current) {
         float dt = (float) timer.seconds();
 
-        if (rateLimited && dt < rateLimit_seconds) {
+        if (options.rateLimited && dt < options.rateLimit_seconds) {
                return previousOutput;
         }
         timer.reset();
 
-        float error = target - x;
+        float error = target - current;
 
-        accumulatedError *= Math.pow(weights.integralDecay, dt);
+        if (options.deadbanded && Math.abs(error) <= options.deadband) {
+            return 0f;
+        }
+
+        accumulatedError *= (float) Math.pow(weights.integralDecay, dt);
         accumulatedError += error * dt;
+
+        if (options.clamp_integrators) {
+            accumulatedError = Util.clamp(accumulatedError, -options.integrator_clamp, options.integrator_clamp);
+        }
 
         if (dt <= 1e-6) {dt = 1e-6f;}
 
@@ -73,13 +127,14 @@ public class PIDF implements IControlLoop<Float, Float, PIDF.Weights> {
 
         float ret = (weights.kP * error + weights.kI * accumulatedError + weights.kD * filteredDerivative + target * weights.kF);
 
-        if (bounded) {
-            ret = Util.clamp(ret, bounds.x, bounds.y);
+        if (options.bounded) {
+            ret = Util.clamp(ret, options.bounds.x, options.bounds.y);
         }
 
-        if (rateLimited) {
+        if (options.rateLimited) {
             previousOutput = ret;
         }
+
 
         return ret;
     }
@@ -91,20 +146,9 @@ public class PIDF implements IControlLoop<Float, Float, PIDF.Weights> {
         previousOutput = 0;
     }
 
-    public PIDF addBounds (float min, float max) {
-        bounds = new Vec2(min, max);
-        bounded = true;
-        return this;
-    }
-
-    public PIDF setRateLimit(float _rateLimit_seconds) {
-        rateLimited = true;
-        rateLimit_seconds = _rateLimit_seconds;
-        return this;
-    }
-
     public PIDF(Weights _weights) {
         weights = _weights;
+
 
         accumulatedError = 0;
         previousError = 0;
@@ -112,10 +156,9 @@ public class PIDF implements IControlLoop<Float, Float, PIDF.Weights> {
 
         previousFilteredDerivative = 0f;
 
-        bounded = false;
-        rateLimited = false;
-
         timer = new ElapsedTime();
         previousOutput = 0;
     }
+
+
 }
