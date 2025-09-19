@@ -5,7 +5,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import org.firstinspires.ftc.teamcode.util.Util;
 import org.firstinspires.ftc.teamcode.util.Vec2;
 
-public class PIDF implements IControlLoop<Float, Float, PIDF.Weights> {
+public class PIDF{
 
     public static class Weights {
         float kP, kI, kD, kF;
@@ -74,21 +74,11 @@ public class PIDF implements IControlLoop<Float, Float, PIDF.Weights> {
     Options options;
 
     float accumulatedError;
-    float previousError;
-    ElapsedTime timer;
 
     float previousOutput;
 
     float previousFilteredDerivative;
-    float target;
 
-
-    @Override
-    public void setTarget(Float _target) {
-        target = _target;
-    }
-
-    @Override
     public void setWeights(Weights _weights) {
         weights = _weights;
     }
