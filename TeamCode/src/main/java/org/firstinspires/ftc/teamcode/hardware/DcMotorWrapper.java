@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.hardware;
 
+import static org.firstinspires.ftc.teamcode.hardware.MotorSpec.GOBILDA_5000_0002_0001;
+
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
@@ -33,6 +35,7 @@ public class DcMotorWrapper implements IMotor {
             motor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
             setPower(0);
         }
+        // Returns Ticks per Second
         public float getVelocity() {
             return (float)motor.getVelocity();
         }
@@ -42,11 +45,12 @@ public class DcMotorWrapper implements IMotor {
     DcMotorEx motor;
     MotorSpec spec;
     boolean usingEncoder;
-    public static MotorSpec GOBILDA_5000_0002_0001 = new MotorSpec(6000, 1.47f, 145.6f);
+
+
     public DcMotorWrapper(DcMotor _motor, boolean _usingEncoder, MotorSpec _spec) {
         motor = (DcMotorEx)_motor;
         motor.setDirection(DcMotorSimple.Direction.FORWARD);
-        spec = _spec == null ? GOBILDA_5000_0002_0001 : _spec;
+        spec = _spec == null ? MotorSpec.GOBILDA_5000_0002_0001 : _spec;
         usingEncoder = _usingEncoder;
         encoder = new Encoder();
 
@@ -57,10 +61,11 @@ public class DcMotorWrapper implements IMotor {
     public DcMotorWrapper(DcMotor _motor, MotorSpec _spec, DcMotorSimple.Direction dir) {
         motor = (DcMotorEx)_motor;
         motor.setDirection(dir);
-        spec = _spec == null ? GOBILDA_5000_0002_0001 : _spec;
+        spec = _spec == null ? MotorSpec.GOBILDA_5000_0002_0001 : _spec;
         usingEncoder = true;
         encoder = new Encoder();
     }
+
     @Override
     public void setPower(float power) {
         motor.setPower(power);
@@ -86,8 +91,14 @@ public class DcMotorWrapper implements IMotor {
         setPower(velocity_ticksPerSecond * 60 / (spec.noLoadSpeed * spec.encoderResolution));
     }
 
+
+    // Returns Ticks per Second
     @Override
     public float getVelocity() {
         return getPower() * spec.noLoadSpeed * spec.encoderResolution / 60;
+    }
+
+    public float ticksPerSecondToRPM(float ticksPerSecond) {
+        return ticksPerSecond * 60 / (spec.encoderResolution * spec.gearRatio);
     }
 }

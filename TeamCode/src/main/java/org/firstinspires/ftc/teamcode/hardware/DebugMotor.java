@@ -8,6 +8,11 @@ public class DebugMotor implements IMotor {
     String id;
     MotorSpec spec;
     public DebugMotor(String _id, Telemetry _telemetry, MotorSpec _spec) {
+        id = _id;
+        telemetry = _telemetry;
+        spec = _spec;
+
+
     }
 
     @Override
