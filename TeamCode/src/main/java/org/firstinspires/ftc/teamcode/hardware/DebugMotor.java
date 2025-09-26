@@ -1,18 +1,39 @@
 package org.firstinspires.ftc.teamcode.hardware;
 
+import androidx.annotation.NonNull;
+
+import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.HardwareMap;
+
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 
 public class DebugMotor implements IMotor {
     float currentPower;
-    Telemetry telemetry;
-    String id;
-    MotorSpec spec;
+    final Telemetry telemetry;
+    final String id;
+    final MotorSpec spec;
     public DebugMotor(String _id, Telemetry _telemetry, MotorSpec _spec) {
         id = _id;
         telemetry = _telemetry;
         spec = _spec;
+    }
 
+    public static class BuildOpt implements IMotorBuildOpt<DebugMotor>{
+        final String name;
+        final MotorSpec spec;
+        final Telemetry telemetry;
 
+        public BuildOpt(String _name, Telemetry _telemetry, MotorSpec _spec) {
+            name = _name;
+            telemetry = _telemetry;
+            spec = _spec;
+        }
+
+        @Override
+        @NonNull
+        public DebugMotor fromMap(@NonNull HardwareMap.DeviceMapping<DcMotor> _map) {
+            return new DebugMotor(name, telemetry, spec);
+        }
     }
 
     @Override

@@ -1,10 +1,11 @@
 package org.firstinspires.ftc.teamcode.hardware;
 
-import static org.firstinspires.ftc.teamcode.hardware.MotorSpec.GOBILDA_5000_0002_0001;
+import androidx.annotation.NonNull;
 
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.hardware.HardwareMap;
 
 public class DcMotorWrapper implements IMotor {
     public class Encoder {
@@ -41,11 +42,29 @@ public class DcMotorWrapper implements IMotor {
         }
     }
 
-    public Encoder encoder;
-    DcMotorEx motor;
-    MotorSpec spec;
-    boolean usingEncoder;
+    public final Encoder encoder;
+    final DcMotorEx motor;
+    final MotorSpec spec;
+    final boolean usingEncoder;
 
+
+    public static class BuildOpt implements IMotorBuildOpt<DcMotorWrapper>{
+        final String name;
+        final boolean usingEncoder;
+        final MotorSpec spec;
+
+        public BuildOpt(String _name, boolean _usingEncoder, MotorSpec _spec) {
+            name = _name;
+            usingEncoder = _usingEncoder;
+            spec = _spec;
+        }
+
+        @Override
+        @NonNull
+        public DcMotorWrapper fromMap(@NonNull HardwareMap.DeviceMapping<DcMotor> _map) {
+            return new DcMotorWrapper(_map.get(name), usingEncoder, spec);
+        }
+    }
 
     public DcMotorWrapper(DcMotor _motor, boolean _usingEncoder, MotorSpec _spec) {
         motor = (DcMotorEx)_motor;
@@ -57,13 +76,6 @@ public class DcMotorWrapper implements IMotor {
     }
     public void setDirection(DcMotorSimple.Direction dir) {
         motor.setDirection((dir));
-    }
-    public DcMotorWrapper(DcMotor _motor, MotorSpec _spec, DcMotorSimple.Direction dir) {
-        motor = (DcMotorEx)_motor;
-        motor.setDirection(dir);
-        spec = _spec == null ? MotorSpec.GOBILDA_5000_0002_0001 : _spec;
-        usingEncoder = true;
-        encoder = new Encoder();
     }
 
     @Override

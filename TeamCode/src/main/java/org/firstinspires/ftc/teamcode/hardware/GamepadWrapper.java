@@ -5,7 +5,7 @@ import com.qualcomm.robotcore.hardware.Gamepad;
 import org.firstinspires.ftc.teamcode.util.Vec2;
 
 public class GamepadWrapper {
-    Gamepad gamepad;
+    final Gamepad gamepad;
 
     public float leftStickY() {return gamepad.left_stick_y;}
     public float leftStickX() {return gamepad.left_stick_x;}

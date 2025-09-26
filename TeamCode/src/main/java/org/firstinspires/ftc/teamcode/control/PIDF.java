@@ -1,15 +1,14 @@
 package org.firstinspires.ftc.teamcode.control;
 
-import com.qualcomm.robotcore.util.ElapsedTime;
-
-import org.firstinspires.ftc.teamcode.util.Util;
-import org.firstinspires.ftc.teamcode.util.Vec2;
-
 public class PIDF {
 
     public static class Weights {
-        float kP, kI, kD, kF;
-        float integralDecay, lowPassFilter;
+        final float kP;
+        final float kI;
+        final float kD;
+        final float kF;
+        final float integralDecay;
+        final float lowPassFilter;
 
         public Weights(float _kP, float _kI, float _kD, float _kF, float _integralDecay, float _lowPassFilter) {
             kP = _kP;

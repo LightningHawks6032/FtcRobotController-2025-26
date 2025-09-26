@@ -13,8 +13,8 @@ public class TestingTeleop extends OpMode {
     PIDF posC, velC;
 
     float targetPosition = 0;
-    float targetVelocity = 0;
-    float targetPower = 0;
+    final float targetVelocity = 0;
+    final float targetPower = 0;
 
     float I, D;
     @Override
@@ -30,9 +30,9 @@ public class TestingTeleop extends OpMode {
     }
 
 
-    float stall_torque =  1.47f * 9.80665e-3f;
-    float no_load_speed = 6000;
-    float encoder_resolution = 145.6f;
+    final float stall_torque =  1.47f * 9.80665e-3f;
+    final float no_load_speed = 6000;
+    final float encoder_resolution = 145.6f;
     float omega_no_load = no_load_speed * 2 * 3.14f / 60;
     float ticks_per_rad = encoder_resolution / (2 * 3.14f);
     float j = stall_torque / 50;
