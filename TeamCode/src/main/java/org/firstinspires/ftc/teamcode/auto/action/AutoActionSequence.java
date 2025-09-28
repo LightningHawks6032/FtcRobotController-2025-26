@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.auto.action;
 
+import org.firstinspires.ftc.teamcode.util.Pair;
+
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.components.RobotController;
@@ -25,21 +27,21 @@ public class AutoActionSequence <DataType extends ElapsedContainer> implements I
     }
 
     @Override
-    public Function<Float, DataType> getDataProvider() {
+    public Function<Pair<Float, RobotController>, DataType> getDataProvider() {
         return actions.get(idx).getDataProvider();
     }
 
     @Override
     public void init(RobotController robot, DataType data) {
         for (IAutoAction<DataType> action : actions) {
-            action.init(robot, action.getDataProvider().apply(data.elapsed));
+            action.init(robot, action.getDataProvider().apply(new Pair<>(data.elapsed, robot)));
         }
     }
 
     @Override
     public void start(RobotController robot, DataType data) {
         for (IAutoAction<DataType> action : actions) {
-            action.start(robot, action.getDataProvider().apply(data.elapsed));
+            action.start(robot, action.getDataProvider().apply(new Pair<>(data.elapsed, robot)));
         }
     }
 

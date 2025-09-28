@@ -1,8 +1,8 @@
 package org.firstinspires.ftc.teamcode.util;
 
 public class Vec2 {
-    public final float x;
-    public final float y;
+    public float x;
+    public float y;
     public Vec2(float _x, float _y) {
         x = _x;
         y = _y;

@@ -1,7 +1,7 @@
 package org.firstinspires.ftc.teamcode.auto.action;
 
 import org.firstinspires.ftc.teamcode.components.RobotController;
-
+import org.firstinspires.ftc.teamcode.util.Pair;
 import java.util.function.Function;
 
 public class WaitAutoAction implements IAutoAction<ElapsedContainer>{
@@ -18,8 +18,8 @@ public class WaitAutoAction implements IAutoAction<ElapsedContainer>{
     }
 
     @Override
-    public Function<Float, ElapsedContainer> getDataProvider() {
-        return ElapsedContainer::new;
+    public Function<Pair<Float, RobotController>, ElapsedContainer> getDataProvider() {
+        return _elapsed -> new ElapsedContainer(_elapsed.fst);
     }
 
     @Override

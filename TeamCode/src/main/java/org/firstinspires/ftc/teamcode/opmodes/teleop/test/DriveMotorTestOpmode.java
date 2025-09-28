@@ -3,7 +3,6 @@ package org.firstinspires.ftc.teamcode.opmodes.teleop.test;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
-import org.firstinspires.ftc.teamcode.auto.action.AutoActionExecutor;
 import org.firstinspires.ftc.teamcode.auto.action.AutoActionSequence;
 import org.firstinspires.ftc.teamcode.auto.action.ElapsedContainer;
 import org.firstinspires.ftc.teamcode.auto.action.IAutoAction;
@@ -16,6 +15,7 @@ import org.firstinspires.ftc.teamcode.hardware.IMotor;
 import org.firstinspires.ftc.teamcode.hardware.InputResponseManager;
 import org.firstinspires.ftc.teamcode.hardware.MotorSpec;
 import org.firstinspires.ftc.teamcode.hardware.drive.DriveMotors;
+import org.firstinspires.ftc.teamcode.util.Pair;
 
 import java.util.function.Function;
 
@@ -42,8 +42,8 @@ public class DriveMotorTestOpmode extends OpMode {
         }
 
         @Override
-        public Function<Float, ElapsedContainer> getDataProvider() {
-            return ElapsedContainer::new;
+        public Function<Pair<Float, RobotController>, ElapsedContainer> getDataProvider() {
+            return _elapsed -> new ElapsedContainer(_elapsed.fst);
         }
 
         @Override

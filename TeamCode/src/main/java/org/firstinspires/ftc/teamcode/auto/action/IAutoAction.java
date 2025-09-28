@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.auto.action;
 
+import org.firstinspires.ftc.teamcode.util.Pair;
+import org.firstinspires.ftc.teamcode.components.RobotController;
 import org.firstinspires.ftc.teamcode.components.action.IAction;
 
 ///
@@ -9,6 +11,6 @@ import org.firstinspires.ftc.teamcode.components.action.IAction;
 public interface IAutoAction <DataType extends ElapsedContainer> extends
         IAction<DataType>,
         ICompletionProvider,
-        IDataProvider<Float, DataType> {
+        IDataProvider<Pair<Float, RobotController>, DataType> {
 // TODO: Maybe provide init, start functions?
 }
