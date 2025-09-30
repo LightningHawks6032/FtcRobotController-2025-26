@@ -17,7 +17,21 @@ public class Vec2Rot {
         r = _r;
     }
 
+    public Vec2Rot componentwiseScl(float scl) {
+        return new Vec2Rot(x * scl, y * scl, r * scl);
+    }
+
+    public Vec2Rot componentwiseAdd(Vec2Rot v) {
+        return new Vec2Rot(x + v.x, y + v.y, r + v.r);
+    }
+
+    public Vec2Rot componentwiseSub(Vec2Rot v) {
+        return new Vec2Rot(x - v.x, y - v.y, r - v.r);
+    }
+
     public Vec2 asVec2() {
         return new Vec2(x, y);
     }
+    static Vec2Rot _zero = new Vec2Rot(0,0,0);
+    public static Vec2Rot zero() {return _zero;}
 }

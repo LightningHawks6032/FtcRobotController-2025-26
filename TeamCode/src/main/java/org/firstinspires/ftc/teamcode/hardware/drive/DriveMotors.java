@@ -14,11 +14,11 @@ import org.firstinspires.ftc.teamcode.hardware.MotorSpec;
 
 /**
  *
- * Robot birds-eye
- *   ul------ur
- *   |       |
- *   |       |
- *   |       |
+ * Robot birds-eye <br>
+ *   ul------ur<br>
+ *   |       |<br>
+ *   |       |<br>
+ *   |       |<br>
  *   dl-----dr
  */
 
@@ -39,6 +39,38 @@ public class DriveMotors {
         ur = _ur;
         dr = _dr;
         dl = _dl;
+    }
+
+    public static class Positions {
+        public float ul, ur, dr, dl;
+
+        public Positions(float _ul, float _ur, float _dr, float _dl) {
+            setPositions(_ul, _ur, _dr, _dl);
+        }
+
+        public void setPositions(float _ul, float _ur, float _dr, float _dl) {
+            ul = _ul;
+            ur = _ur;
+            dr = _dr;
+            dl = _dl;
+        }
+
+        public Positions componentwiseSub(@NonNull Positions r) {
+            return new Positions(ul - r.ul, ur - r.ur, dr - r.dr, dl - r.dl);
+        }
+
+        public Positions componentwiseScl(float scl) {
+            return new Positions(ul * scl, ur * scl, dr * scl, dl * scl);
+        }
+    }
+
+    public Positions getPositions() {
+        return new Positions(
+                ul.getPosition(),
+                ur.getPosition(),
+                dr.getPosition(),
+                dl.getPosition()
+        );
     }
 
     @NonNull

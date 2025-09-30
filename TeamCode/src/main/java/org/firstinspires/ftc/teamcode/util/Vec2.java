@@ -30,6 +30,12 @@ public class Vec2 {
         float mag = mag();
         return new Vec2(x / mag, y / mag);
     }
+    public Vec2 rotateOrigin(float _angle_rad) {
+        float c = (float)Math.cos(_angle_rad);
+        float s = (float)Math.sin(_angle_rad);
+
+        return new Vec2(x * c - y * s, x * s + y * c);
+    }
     public boolean nonzero() {
         return x!=0||y!=0;
     }

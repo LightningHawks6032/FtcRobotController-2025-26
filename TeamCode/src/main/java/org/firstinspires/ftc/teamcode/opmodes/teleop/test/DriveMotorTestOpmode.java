@@ -4,6 +4,7 @@ import androidx.annotation.NonNull;
 
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.auto.action.AutoActionSequence;
 import org.firstinspires.ftc.teamcode.auto.action.ElapsedContainer;
@@ -18,6 +19,8 @@ import org.firstinspires.ftc.teamcode.hardware.IMotor;
 import org.firstinspires.ftc.teamcode.hardware.InputResponseManager;
 import org.firstinspires.ftc.teamcode.hardware.MotorSpec;
 import org.firstinspires.ftc.teamcode.hardware.drive.DriveMotors;
+import org.firstinspires.ftc.teamcode.hardware.drive.odometry.IOdometry;
+import org.firstinspires.ftc.teamcode.hardware.drive.odometry.MecanumOdometry;
 import org.firstinspires.ftc.teamcode.util.Pair;
 import org.firstinspires.ftc.teamcode.util.Vec2;
 import org.firstinspires.ftc.teamcode.util.Vec2Rot;
@@ -232,7 +235,10 @@ public class DriveMotorTestOpmode extends OpMode {
     LaunchAutoSequenceAction<ElapsedContainer> actionExecutor;
     RobotController robot;
     InputResponseManager inputResponseManager;
+    IOdometry odometry;
+    ElapsedTime timer;
 
+    BiFunction<Vec2, Float, Vec2Rot> usingFieldCentric;
     @Override
     public void init() {
         robot = new RobotController();
@@ -260,10 +266,27 @@ public class DriveMotorTestOpmode extends OpMode {
                 .loops(new PredicateAction<>(new EmptyAction<>(), driveAction, (robot, v) -> actionExecutor.running()))
                 .build();
 
+        odometry = new MecanumOdometry(drive, new MecanumOdometry.WheelSpec(
+                1,1,1,1
+        ));
+
+        timer = new ElapsedTime();
+
+        usingFieldCentric = (v, r) -> new Vec2Rot(v.rotateOrigin(-odometry.getPos().r), r);;
+    }
+
+    @Override
+    public void start() {
+        timer.reset();
     }
 
     @Override
     public void loop() {
+        float dt = (float)timer.seconds();
+        if (dt < 1e-6) {dt = 1e-6f;}
+        odometry.loop(dt);
+        timer.reset();
+
         inputResponseManager.loop();
     }
 }
