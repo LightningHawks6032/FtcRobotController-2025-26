@@ -72,7 +72,7 @@ public  class InputResponseManager {
         onRightTrigger();
         onLeftTrigger();
     }
-
+    
     public static class Builder {
 
         final InputResponseManager inputResponseManager;

@@ -15,6 +15,8 @@ public class LaunchAutoSequenceAction <DataType extends ElapsedContainer> implem
     boolean running;
     ElapsedTime timer;
 
+    public boolean running() {return running;}
+
     public LaunchAutoSequenceAction(AutoActionSequence<DataType> _sequence) {
         sequence = _sequence;
         running = false;
@@ -24,12 +26,12 @@ public class LaunchAutoSequenceAction <DataType extends ElapsedContainer> implem
 
     @Override
     public void init(RobotController robot, Boolean data) {
-        sequence.init(robot, sequence.getDataProvider().apply(0f));
+        //sequence.init(robot, sequence.getDataProvider().apply(0f));
     }
 
     @Override
     public void start(RobotController robot, Boolean data) {
-        sequence.start(robot, sequence.getDataProvider().apply(0f));
+        //sequence.start(robot, sequence.getDataProvider().apply(0f));
         timer.reset();
     }
 
@@ -42,7 +44,7 @@ public class LaunchAutoSequenceAction <DataType extends ElapsedContainer> implem
         }
 
         if (running) {
-            sequence.loop(robot, sequence.getDataProvider().apply((float) timer.seconds()));
+            //sequence.loop(robot, sequence.getDataProvider().apply((float) timer.seconds()));
 
             if (sequence.isDone((float) timer.seconds())) {
                 running = false;

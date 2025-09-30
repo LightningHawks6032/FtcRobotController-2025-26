@@ -12,10 +12,12 @@ public class DebugMotor implements IMotor {
     final Telemetry telemetry;
     final String id;
     final MotorSpec spec;
+    Direction dir;
     public DebugMotor(String _id, Telemetry _telemetry, MotorSpec _spec) {
         id = _id;
         telemetry = _telemetry;
         spec = _spec;
+        dir = Direction.FORWARD;
     }
 
     public static class BuildOpt implements IMotorBuildOpt<DebugMotor>{
@@ -66,6 +68,16 @@ public class DebugMotor implements IMotor {
     @Override
     public float getVelocity() {
         return getPower() * spec.noLoadSpeed * spec.encoderResolution / 60;
+    }
+
+    @Override
+    public void setDirection(Direction _dir) {
+        dir = _dir;
+    }
+
+    @Override
+    public Direction getDirection() {
+        return dir;
     }
 
 }

@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.opmodes.teleop.test;
 
+import androidx.annotation.NonNull;
+
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
@@ -8,6 +10,7 @@ import org.firstinspires.ftc.teamcode.auto.action.ElapsedContainer;
 import org.firstinspires.ftc.teamcode.auto.action.IAutoAction;
 import org.firstinspires.ftc.teamcode.auto.action.WaitAutoAction;
 import org.firstinspires.ftc.teamcode.components.RobotController;
+import org.firstinspires.ftc.teamcode.components.action.EmptyAction;
 import org.firstinspires.ftc.teamcode.components.action.IAction;
 import org.firstinspires.ftc.teamcode.components.action.LaunchAutoSequenceAction;
 import org.firstinspires.ftc.teamcode.hardware.GamepadWrapper;
@@ -16,12 +19,14 @@ import org.firstinspires.ftc.teamcode.hardware.InputResponseManager;
 import org.firstinspires.ftc.teamcode.hardware.MotorSpec;
 import org.firstinspires.ftc.teamcode.hardware.drive.DriveMotors;
 import org.firstinspires.ftc.teamcode.util.Pair;
+import org.firstinspires.ftc.teamcode.util.Vec2;
+import org.firstinspires.ftc.teamcode.util.Vec2Rot;
 
+import java.util.function.BiFunction;
 import java.util.function.Function;
 
 @TeleOp(name = "Drive Motor Test", group = "Testing")
 public class DriveMotorTestOpmode extends OpMode {
-
     static class MotorTestAction implements IAutoAction<ElapsedContainer> {
 
         final float duration;
@@ -62,7 +67,155 @@ public class DriveMotorTestOpmode extends OpMode {
         }
     }
 
-    static AutoActionSequence<ElapsedContainer> testDrive(DriveMotors drive) {
+    static class PredicateAction <Ty> implements IAction<Ty> {
+
+        IAction<Ty> onTrue;
+        IAction<Ty> onFalse;
+        BiFunction<RobotController, Ty, Boolean> pred;
+
+
+        public PredicateAction(IAction<Ty> _onTrue) {
+            onTrue = _onTrue;
+            onFalse = new EmptyAction<>();
+        }
+
+        public PredicateAction(IAction<Ty> _onTrue, IAction<Ty> _onFalse, BiFunction<RobotController, Ty, Boolean> _pred) {
+            onTrue = _onTrue;
+            onFalse = _onFalse;
+            pred = _pred;
+        }
+
+        IAction<Ty> getRunningAction(boolean pred) {
+            return pred ? onTrue : onFalse;
+        }
+
+        @Override
+        public void init(RobotController robot, Ty data) {
+            getRunningAction(pred.apply(robot, data)).init(robot, data);
+        }
+
+        @Override
+        public void start(RobotController robot, Ty data) {
+            getRunningAction(pred.apply(robot, data)).start(robot, data);
+        }
+
+        @Override
+        public void loop(RobotController robot, Ty data) {
+            getRunningAction(pred.apply(robot, data)).loop(robot, data);
+        }
+    }
+
+    static class DirectDriveAction implements IAction<Vec2Rot> {
+
+    // rot: add to left subtract from right
+        DriveMotors drive;
+
+
+
+        public DirectDriveAction(DriveMotors _drive) {
+            drive = _drive;
+        }
+
+        Vec2Rot normalize(@NonNull Vec2Rot vec) {
+            float d = Math.max(Math.abs(vec.x) + Math.abs(vec.y) + Math.abs(vec.r), 1);
+            return new Vec2Rot(vec.x / d, vec.y / d, vec.r / d);
+        }
+
+        @Override
+        public void init(RobotController robot, Vec2Rot data) {
+
+        }
+
+        @Override
+        public void start(RobotController robot, Vec2Rot data) {
+
+        }
+
+        @Override
+        public void loop(RobotController robot, Vec2Rot data) {
+            Vec2Rot pow = normalize(data);
+
+            drive.ul().setPower(pow.y + pow.x + pow.r);
+            drive.ur().setPower(pow.y - pow.x - pow.r);
+            drive.dl().setPower(pow.y - pow.x + pow.r);
+            drive.dr().setPower(pow.y + pow.x - pow.r);
+        }
+    }
+
+    /// Provides three actions, the setters for `Ty1` and `Ty2` and the loop action that implements the split action
+    static class SplitAction <Ty1, Ty2, TySplit> implements IAction<Object> {
+        IAction<Ty1> leftSetter;
+        IAction<Ty2> rightSetter;
+        IAction<TySplit> action;
+
+        public IAction<Ty1> leftSetter() {return leftSetter;}
+        public IAction<Ty2> rightSetter() {return rightSetter;}
+
+        Ty1 leftData;
+        Ty2 rightData;
+
+        BiFunction<Ty1, Ty2, TySplit> conversionMap;
+
+        class LeftSetterAction implements IAction<Ty1>{
+
+            @Override
+            public void init(RobotController robot, Ty1 data) {
+                leftData = data;
+            }
+
+            @Override
+            public void start(RobotController robot, Ty1 data) {
+                leftData = data;
+            }
+
+            @Override
+            public void loop(RobotController robot, Ty1 data) {
+                leftData = data;
+            }
+        }
+        class RightSetterAction implements IAction<Ty2>{
+
+            @Override
+            public void init(RobotController robot, Ty2 data) {
+                rightData = data;
+            }
+
+            @Override
+            public void start(RobotController robot, Ty2 data) {
+                rightData = data;
+            }
+
+            @Override
+            public void loop(RobotController robot, Ty2 data) {
+                rightData = data;
+            }
+        }
+
+        public SplitAction(IAction<TySplit> _action, BiFunction<Ty1, Ty2, TySplit> _conversionMap) {
+            action = _action;
+            conversionMap = _conversionMap;
+            leftSetter = new LeftSetterAction();
+            rightSetter = new RightSetterAction();
+        }
+
+        @Override
+        public void init(RobotController robot, Object data) {
+            action.init(robot, conversionMap.apply(leftData, rightData));
+        }
+
+        @Override
+        public void start(RobotController robot, Object data) {
+            action.start(robot, conversionMap.apply(leftData, rightData));
+        }
+
+        @Override
+        public void loop(RobotController robot, Object data) {
+            action.loop(robot, conversionMap.apply(leftData, rightData));
+        }
+    }
+
+    @NonNull
+    static AutoActionSequence<ElapsedContainer> testDrive(@NonNull DriveMotors drive) {
         return new AutoActionSequence<>(
             new MotorTestAction(drive.ul(), 1f),
             new WaitAutoAction(1f),
@@ -76,41 +229,35 @@ public class DriveMotorTestOpmode extends OpMode {
 
 
     DriveMotors drive;
-    IAction<Boolean> actionExecutor;
+    LaunchAutoSequenceAction<ElapsedContainer> actionExecutor;
     RobotController robot;
     InputResponseManager inputResponseManager;
 
     @Override
     public void init() {
         robot = new RobotController();
-        drive = DriveMotors.fromMapDcMotor(hardwareMap.dcMotor, true, MotorSpec.GOBILDA_5203_2402_0003,
-                "motor1", "motor1", "motor1", "motor1"
+        drive = DriveMotors.fromMapDcMotor(hardwareMap.dcMotor, true, MotorSpec.GOBILDA_5203_2402_0019,
+                "lf", "rf", "rr", "lr"
         );
+
+        drive.dr().setDirection(IMotor.Direction.REVERSE);
+        drive.dl().setDirection(IMotor.Direction.REVERSE);
+
 
         actionExecutor = new LaunchAutoSequenceAction<>(
                 testDrive(drive)
         );
 
-        actionExecutor.init(robot, false);
-
-
-        drive.ul().setPower(gamepad1.dpad_up?1:0);
-        drive.ur().setPower(gamepad1.dpad_right?1:0);
-        drive.dr().setPower(gamepad1.dpad_down?1:0);
-        drive.dl().setPower(gamepad1.dpad_left?1:0);
-
-        float x = gamepad1.left_stick_x;
-        float y = gamepad1.left_stick_y;
-        if (x != 0 || y != 0) {
-            drive.ul().setPower(0.5f * (x + y));
-            drive.ur().setPower(0.5f * (x-y));
-            drive.dl().setPower(0.5f * (x - y));
-            drive.dr().setPower(0.5f * (x + y));
-
-        }
+        SplitAction<Vec2, Float, Vec2Rot> driveAction = new SplitAction<>(
+                new DirectDriveAction(drive),
+                Vec2Rot::new
+        );
 
         inputResponseManager = new InputResponseManager.Builder(new GamepadWrapper(gamepad1), robot)
                 .AAction(actionExecutor)
+                .leftStickAction(driveAction.leftSetter)
+                .rightTriggerAction(driveAction.rightSetter)
+                .loops(new PredicateAction<>(new EmptyAction<>(), driveAction, (robot, v) -> actionExecutor.running()))
                 .build();
 
     }

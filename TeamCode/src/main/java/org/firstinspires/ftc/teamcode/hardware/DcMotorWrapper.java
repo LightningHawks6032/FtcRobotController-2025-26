@@ -74,8 +74,13 @@ public class DcMotorWrapper implements IMotor {
         encoder = new Encoder();
 
     }
-    public void setDirection(DcMotorSimple.Direction dir) {
-        motor.setDirection((dir));
+    public void setDirection(IMotor.Direction dir) {
+        motor.setDirection(IMotor.Direction.toMotorDir(dir));
+    }
+
+    @Override
+    public Direction getDirection() {
+        return IMotor.Direction.fromMotorDir(motor.getDirection());
     }
 
     @Override

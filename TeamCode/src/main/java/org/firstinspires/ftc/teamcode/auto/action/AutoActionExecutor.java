@@ -16,11 +16,11 @@ public class AutoActionExecutor<DataType extends ElapsedContainer> {
     }
 
     public void init(RobotController robot) {
-        action.init(robot, action.getDataProvider().apply(0f));
+        //action.init(robot, action.getDataProvider().apply(0f));
     }
 
     public void start(RobotController robot) {
-        action.start(robot, action.getDataProvider().apply(0f));
+        //action.start(robot, action.getDataProvider().apply(0f));
         timer.reset();
     }
 
@@ -30,7 +30,7 @@ public class AutoActionExecutor<DataType extends ElapsedContainer> {
         }
 
         if (!finished) {
-            action.loop(robot, action.getDataProvider().apply((float) timer.seconds()));
+            //action.loop(robot, action.getDataProvider().apply((float) timer.seconds()));
         }
     }
 }
