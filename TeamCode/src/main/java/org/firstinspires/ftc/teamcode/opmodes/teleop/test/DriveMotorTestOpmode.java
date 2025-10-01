@@ -109,11 +109,7 @@ public class DriveMotorTestOpmode extends OpMode {
     }
 
     static class DirectDriveAction implements IAction<Vec2Rot> {
-
-    // rot: add to left subtract from right
         DriveMotors drive;
-
-
 
         public DirectDriveAction(DriveMotors _drive) {
             drive = _drive;
@@ -136,12 +132,13 @@ public class DriveMotorTestOpmode extends OpMode {
 
         @Override
         public void loop(RobotController robot, Vec2Rot data) {
+
             Vec2Rot pow = normalize(data);
 
-            drive.ul().setPower(pow.y + pow.x + pow.r);
-            drive.ur().setPower(pow.y - pow.x - pow.r);
-            drive.dl().setPower(pow.y - pow.x + pow.r);
-            drive.dr().setPower(pow.y + pow.x - pow.r);
+            drive.ul().setPower(pow.y - pow.x - pow.r);
+            drive.ur().setPower(pow.y + pow.x + pow.r);
+            drive.dl().setPower(pow.y + pow.x - pow.r);
+            drive.dr().setPower(pow.y - pow.x + pow.r);
         }
     }
 
@@ -230,7 +227,6 @@ public class DriveMotorTestOpmode extends OpMode {
         );
     }
 
-
     DriveMotors drive;
     LaunchAutoSequenceAction<ElapsedContainer> actionExecutor;
     RobotController robot;
@@ -246,29 +242,41 @@ public class DriveMotorTestOpmode extends OpMode {
                 "lf", "rf", "rr", "lr"
         );
 
+        drive.ur().setDirection(IMotor.Direction.REVERSE);
+        drive.dl().setDirection(IMotor.Direction.FORWARD);
         drive.dr().setDirection(IMotor.Direction.REVERSE);
-        drive.dl().setDirection(IMotor.Direction.REVERSE);
+        drive.ul().setDirection(IMotor.Direction.FORWARD);
 
 
         actionExecutor = new LaunchAutoSequenceAction<>(
                 testDrive(drive)
         );
 
-        SplitAction<Vec2, Float, Vec2Rot> driveAction = new SplitAction<>(
+        SplitAction<Vec2, Vec2, Vec2Rot> driveAction = new SplitAction<>(
                 new DirectDriveAction(drive),
-                Vec2Rot::new
+                (v1, r) -> {
+
+                    telemetry.addData("rotation", r.x);
+                    return new Vec2Rot(v1, r.x);}
         );
 
-        inputResponseManager = new InputResponseManager.Builder(new GamepadWrapper(gamepad1), robot)
+        odometry = new MecanumOdometry(drive, new MecanumOdometry.WheelSpec(
+                7,
+                MotorSpec.GOBILDA_5203_2402_0003.encoderResolution * MotorSpec.GOBILDA_5203_2402_0003.gearRatio,
+                1,
+                (float)Math.PI / 4f
+        ));
+
+        inputResponseManager = new InputResponseManager.Builder(new GamepadWrapper(gamepad1), robot, telemetry)
                 .AAction(actionExecutor)
                 .leftStickAction(driveAction.leftSetter)
-                .rightTriggerAction(driveAction.rightSetter)
+                .rightStickAction(driveAction.rightSetter)
                 .loops(new PredicateAction<>(new EmptyAction<>(), driveAction, (robot, v) -> actionExecutor.running()))
+                .telemetry(
+                        odometry.getTelemetryAction()
+                )
                 .build();
 
-        odometry = new MecanumOdometry(drive, new MecanumOdometry.WheelSpec(
-                1,1,1,1
-        ));
 
         timer = new ElapsedTime();
 

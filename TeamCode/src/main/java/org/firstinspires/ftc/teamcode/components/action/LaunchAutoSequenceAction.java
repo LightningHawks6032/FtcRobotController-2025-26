@@ -6,6 +6,7 @@ import org.firstinspires.ftc.teamcode.auto.action.AutoActionExecutor;
 import org.firstinspires.ftc.teamcode.auto.action.AutoActionSequence;
 import org.firstinspires.ftc.teamcode.auto.action.ElapsedContainer;
 import org.firstinspires.ftc.teamcode.components.RobotController;
+import org.firstinspires.ftc.teamcode.util.Pair;
 
 /// Launches an [AutoActionSequence] <br> On `true` loop, the auto sequence will start
 /// and will continue until termination <br>
@@ -26,12 +27,12 @@ public class LaunchAutoSequenceAction <DataType extends ElapsedContainer> implem
 
     @Override
     public void init(RobotController robot, Boolean data) {
-        //sequence.init(robot, sequence.getDataProvider().apply(0f));
+        sequence.init(robot, sequence.getDataProvider().apply(new Pair<>((float) timer.seconds(), robot)));
     }
 
     @Override
     public void start(RobotController robot, Boolean data) {
-        //sequence.start(robot, sequence.getDataProvider().apply(0f));
+        sequence.start(robot, sequence.getDataProvider().apply(new Pair<>((float) timer.seconds(), robot)));
         timer.reset();
     }
 
@@ -44,7 +45,7 @@ public class LaunchAutoSequenceAction <DataType extends ElapsedContainer> implem
         }
 
         if (running) {
-            //sequence.loop(robot, sequence.getDataProvider().apply((float) timer.seconds()));
+            sequence.loop(robot, sequence.getDataProvider().apply(new Pair<>((float) timer.seconds(), robot)));
 
             if (sequence.isDone((float) timer.seconds())) {
                 running = false;

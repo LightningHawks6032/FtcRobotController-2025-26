@@ -1,10 +1,10 @@
 package org.firstinspires.ftc.teamcode.hardware;
 
 public class MotorSpec {
-    final float noLoadSpeed;
-    final float stallTorque;
-    final float encoderResolution;
-    final float gearRatio;
+    public final float noLoadSpeed;
+    public final float stallTorque;
+    public final float encoderResolution;
+    public final float gearRatio;
     public MotorSpec(float _noLoadSpeed_RPM, float _stallTorque_KgCm, float _encoderResolution_PPR, float _gearRatio) {
         noLoadSpeed = _noLoadSpeed_RPM;
         stallTorque = _stallTorque_KgCm;

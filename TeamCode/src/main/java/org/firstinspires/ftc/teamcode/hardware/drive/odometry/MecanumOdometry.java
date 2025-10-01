@@ -1,8 +1,12 @@
 package org.firstinspires.ftc.teamcode.hardware.drive.odometry;
 
+import androidx.annotation.NonNull;
+
+import org.firstinspires.ftc.robotcore.external.Telemetry;
+import org.firstinspires.ftc.teamcode.components.action.IAction;
 import org.firstinspires.ftc.teamcode.hardware.drive.DriveMotors;
-import org.firstinspires.ftc.teamcode.util.Vec2;
 import org.firstinspires.ftc.teamcode.util.Vec2Rot;
+import org.firstinspires.ftc.teamcode.util.WithTelemetry;
 
 public class MecanumOdometry implements IOdometry {
     Vec2Rot pos, vel, acc;
@@ -10,6 +14,24 @@ public class MecanumOdometry implements IOdometry {
     DriveMotors.Positions posReadings;
     final DriveMotors drive;
 
+    final IAction<Telemetry> telem = new WithTelemetry.Action<WithTelemetry.ITelemetry>(new WithTelemetry.ITelemetry() {
+        @Override
+        public String getName() {
+            return "Mecanum Drive";
+        }
+
+        @Override
+        public void loop(@NonNull Telemetry _telemetry) {
+            _telemetry.addData("pos", pos.toString());
+            _telemetry.addData("vel", vel.toString());
+            _telemetry.addData("acc", acc.toString());
+        }
+    });
+
+    @Override
+    public IAction<Telemetry> getTelemetryAction() {
+        return telem;
+    }
 
     public static class WheelSpec {
         public final float radius, ticksPerRev, displacement, angleOffPerp;
