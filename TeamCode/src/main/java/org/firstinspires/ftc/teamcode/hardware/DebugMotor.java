@@ -6,6 +6,8 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
+import org.firstinspires.ftc.teamcode.components.action.IAction;
+import org.firstinspires.ftc.teamcode.util.WithTelemetry;
 
 public class DebugMotor implements IMotor {
     float currentPower;
@@ -21,10 +23,10 @@ public class DebugMotor implements IMotor {
     }
 
     public static class BuildOpt implements IMotorBuildOpt<DebugMotor>{
+
         final String name;
         final MotorSpec spec;
         final Telemetry telemetry;
-
         public BuildOpt(String _name, Telemetry _telemetry, MotorSpec _spec) {
             name = _name;
             telemetry = _telemetry;
@@ -36,8 +38,8 @@ public class DebugMotor implements IMotor {
         public DebugMotor fromMap(@NonNull HardwareMap.DeviceMapping<DcMotor> _map) {
             return new DebugMotor(name, telemetry, spec);
         }
-    }
 
+    }
     @Override
     public void setPower(float power) {
         currentPower = power;
@@ -78,6 +80,27 @@ public class DebugMotor implements IMotor {
     @Override
     public Direction getDirection() {
         return dir;
+    }
+
+    IAction<Telemetry> telem = new WithTelemetry.Action<WithTelemetry.ITelemetry>(
+            new WithTelemetry.ITelemetry() {
+                @Override
+                public String getName() {
+                    return id;
+                }
+
+                @Override
+                public void loop(Telemetry _telemetry) {
+                    _telemetry.addData("Pos (ticks)", getPosition());
+                    _telemetry.addData("Vel (ticks/s)", getVelocity());
+                    _telemetry.addData("Power", currentPower);
+                }
+            }
+    );
+
+    @Override
+    public IAction<Telemetry> getTelemetryAction() {
+        return telem;
     }
 
 }

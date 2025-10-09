@@ -66,9 +66,15 @@ public class MecanumOdometry implements IOdometry {
     @Override
     public void loop(float dt) {
         DriveMotors.Positions current = drive.getPositions();
+
+        current.dr = -current.dr;
+        current.ur = -current.ur;
+
         DriveMotors.Positions dEncPos = current
                 .componentwiseSub(posReadings)
                 .componentwiseScl(wheelSpec.distancePerTick);
+
+
         posReadings = current;
 
         Vec2Rot dPos = new Vec2Rot(

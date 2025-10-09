@@ -7,6 +7,10 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
+import org.firstinspires.ftc.robotcore.external.Telemetry;
+import org.firstinspires.ftc.teamcode.components.action.IAction;
+import org.firstinspires.ftc.teamcode.util.WithTelemetry;
+
 public class DcMotorWrapper implements IMotor {
     public class Encoder {
         public boolean runningToPosition = false;
@@ -117,5 +121,26 @@ public class DcMotorWrapper implements IMotor {
 
     public float ticksPerSecondToRPM(float ticksPerSecond) {
         return ticksPerSecond * 60 / (spec.encoderResolution * spec.gearRatio);
+    }
+
+
+    IAction<Telemetry> telem = new WithTelemetry.Action<WithTelemetry.ITelemetry>(
+            new WithTelemetry.ITelemetry() {
+                @Override
+                public String getName() {
+                    return motor.getDeviceName();
+                }
+
+                @Override
+                public void loop(Telemetry _telemetry) {
+                    _telemetry.addData("Pos (ticks)", getPosition());
+                    _telemetry.addData("Vel (ticks/s)", getVelocity());
+                    _telemetry.addData("Power", motor.getPower());
+                }
+            }
+    );
+    @Override
+    public IAction<Telemetry> getTelemetryAction() {
+        return telem;
     }
 }

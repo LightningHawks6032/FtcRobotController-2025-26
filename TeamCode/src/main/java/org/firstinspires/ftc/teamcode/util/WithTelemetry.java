@@ -6,8 +6,12 @@ import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.components.RobotController;
 import org.firstinspires.ftc.teamcode.components.action.IAction;
 
+import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.function.Supplier;
+
 public class WithTelemetry {
-    public interface ITelemetry extends WithTelemetry.IWithTelemetry{
+    public interface ITelemetry{
         String getName();
         void loop(Telemetry _telemetry);
     }
@@ -42,5 +46,19 @@ public class WithTelemetry {
 
     public interface IWithTelemetry {
         IAction<Telemetry> getTelemetryAction();
+    }
+
+    public static IAction<Telemetry> fromLambda(Supplier<String> _getName, Consumer<Telemetry> _loop) {
+        return new WithTelemetry.Action<WithTelemetry.ITelemetry>(new WithTelemetry.ITelemetry() {
+            @Override
+            public String getName() {
+                return _getName.get();
+            }
+
+            @Override
+            public void loop(@NonNull Telemetry _telemetry) {
+                _loop.accept(_telemetry);
+            }
+        });
     }
 }

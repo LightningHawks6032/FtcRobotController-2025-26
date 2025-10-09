@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode.auto.action;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.components.RobotController;
+import org.firstinspires.ftc.teamcode.util.Pair;
 
 public class AutoActionExecutor<DataType extends ElapsedContainer> {
     final ElapsedTime timer;
@@ -16,11 +17,11 @@ public class AutoActionExecutor<DataType extends ElapsedContainer> {
     }
 
     public void init(RobotController robot) {
-        //action.init(robot, action.getDataProvider().apply(0f));
+        action.init(robot, action.getDataProvider().apply(new Pair<>(0f, robot)));
     }
 
     public void start(RobotController robot) {
-        //action.start(robot, action.getDataProvider().apply(0f));
+        action.start(robot, action.getDataProvider().apply(new Pair<>(0f, robot)));
         timer.reset();
     }
 
@@ -30,7 +31,7 @@ public class AutoActionExecutor<DataType extends ElapsedContainer> {
         }
 
         if (!finished) {
-            //action.loop(robot, action.getDataProvider().apply((float) timer.seconds()));
+            action.loop(robot, action.getDataProvider().apply(new Pair<>((float) timer.seconds(), robot)));
         }
     }
 }

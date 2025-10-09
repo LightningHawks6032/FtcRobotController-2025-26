@@ -148,15 +148,20 @@ public class DriveMotorTestOpmode extends OpMode {
         IAction<Ty2> rightSetter;
         IAction<TySplit> action;
 
-        public IAction<Ty1> leftSetter() {return leftSetter;}
-        public IAction<Ty2> rightSetter() {return rightSetter;}
+        public IAction<Ty1> leftSetter() {
+            return leftSetter;
+        }
+
+        public IAction<Ty2> rightSetter() {
+            return rightSetter;
+        }
 
         Ty1 leftData;
         Ty2 rightData;
 
         BiFunction<Ty1, Ty2, TySplit> conversionMap;
 
-        class LeftSetterAction implements IAction<Ty1>{
+        class LeftSetterAction implements IAction<Ty1> {
 
             @Override
             public void init(RobotController robot, Ty1 data) {
@@ -173,7 +178,8 @@ public class DriveMotorTestOpmode extends OpMode {
                 leftData = data;
             }
         }
-        class RightSetterAction implements IAction<Ty2>{
+
+        class RightSetterAction implements IAction<Ty2> {
 
             @Override
             public void init(RobotController robot, Ty2 data) {
@@ -200,20 +206,25 @@ public class DriveMotorTestOpmode extends OpMode {
 
         @Override
         public void init(RobotController robot, Object data) {
-            action.init(robot, conversionMap.apply(leftData, rightData));
+            if (leftData != null && rightData != null) {
+                action.init(robot, conversionMap.apply(leftData, rightData));
+            }
         }
 
         @Override
         public void start(RobotController robot, Object data) {
-            action.start(robot, conversionMap.apply(leftData, rightData));
+            if (leftData != null && rightData != null) {
+                action.start(robot, conversionMap.apply(leftData, rightData));
+            }
         }
 
         @Override
         public void loop(RobotController robot, Object data) {
-            action.loop(robot, conversionMap.apply(leftData, rightData));
+            if (leftData != null && rightData != null) {
+                action.loop(robot, conversionMap.apply(leftData, rightData));
+            }
         }
     }
-
     @NonNull
     static AutoActionSequence<ElapsedContainer> testDrive(@NonNull DriveMotors drive) {
         return new AutoActionSequence<>(
@@ -257,13 +268,13 @@ public class DriveMotorTestOpmode extends OpMode {
                 (v1, r) -> {
 
                     telemetry.addData("rotation", r.x);
-                    return new Vec2Rot(v1, r.x);}
+                    return usingFieldCentric.apply(v1, r.x);}//new Vec2Rot(v1, r.x);}
         );
 
         odometry = new MecanumOdometry(drive, new MecanumOdometry.WheelSpec(
                 7,
                 MotorSpec.GOBILDA_5203_2402_0003.encoderResolution * MotorSpec.GOBILDA_5203_2402_0003.gearRatio,
-                1,
+                35,
                 (float)Math.PI / 4f
         ));
 
@@ -273,14 +284,18 @@ public class DriveMotorTestOpmode extends OpMode {
                 .rightStickAction(driveAction.rightSetter)
                 .loops(new PredicateAction<>(new EmptyAction<>(), driveAction, (robot, v) -> actionExecutor.running()))
                 .telemetry(
-                        odometry.getTelemetryAction()
+                        odometry.getTelemetryAction(),
+                        drive.ul().getTelemetryAction(),
+                        drive.ur().getTelemetryAction(),
+                        drive.dr().getTelemetryAction(),
+                        drive.dl().getTelemetryAction()
                 )
                 .build();
 
 
         timer = new ElapsedTime();
 
-        usingFieldCentric = (v, r) -> new Vec2Rot(v.rotateOrigin(-odometry.getPos().r), r);;
+        usingFieldCentric = (v, r) -> new Vec2Rot(v.rotateOrigin(-odometry.getPos().r), r);
     }
 
     @Override

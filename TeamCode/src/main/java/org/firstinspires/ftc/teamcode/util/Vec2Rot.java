@@ -34,4 +34,9 @@ public class Vec2Rot {
     }
     static Vec2Rot _zero = new Vec2Rot(0,0,0);
     public static Vec2Rot zero() {return _zero;}
+
+    @NonNull
+    public String toString() {
+        return "(" + x + ", " + y + ", " + r + ")";
+    }
 }

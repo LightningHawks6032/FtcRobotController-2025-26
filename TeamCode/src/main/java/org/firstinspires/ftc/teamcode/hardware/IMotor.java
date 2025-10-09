@@ -5,7 +5,9 @@ import androidx.annotation.NonNull;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 
-public interface IMotor {
+import org.firstinspires.ftc.teamcode.util.WithTelemetry;
+
+public interface IMotor extends WithTelemetry.IWithTelemetry{
     enum Direction {
         FORWARD, REVERSE;
         public static DcMotor.Direction toMotorDir(@NonNull Direction dir) {

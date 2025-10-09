@@ -4,5 +4,5 @@ package org.firstinspires.ftc.teamcode.auto.action;
 import java.util.function.Function;
 
 public interface IDataProvider <ParamType, DataType> {
-    public Function<ParamType, DataType> getDataProvider();
+    Function<ParamType, DataType> getDataProvider();
 }
