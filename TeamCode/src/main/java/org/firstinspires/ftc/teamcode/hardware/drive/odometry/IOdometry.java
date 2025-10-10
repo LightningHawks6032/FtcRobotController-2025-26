@@ -9,4 +9,5 @@ public interface IOdometry extends WithTelemetry.IWithTelemetry {
     Vec2Rot getPos();
     Vec2Rot getVel();
     Vec2Rot getAcc();
+    void resetHeading();
 }

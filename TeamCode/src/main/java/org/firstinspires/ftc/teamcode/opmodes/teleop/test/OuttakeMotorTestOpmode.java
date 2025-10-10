@@ -20,9 +20,9 @@ public class OuttakeMotorTestOpmode extends OpMode {
 
     @Override
     public void init() {
-        DcMotor temp = hardwareMap.dcMotor.get("motor1");
+        DcMotor temp = hardwareMap.dcMotor.get("motor");
         temp.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
-        motor1 = new DcMotorWrapper(temp, true, MotorSpec.GOBILDA_5203_2402_0003);
+        motor1 = new DcMotorWrapper(temp, true, MotorSpec.GOBILDA_5000_0002_0001);
         motor2 = new DebugMotor("yo", telemetry, null);//(DcMotorEx) hardwareMap.dcMotor.get("motor2");
         motor_power = 0;
         lock = false;

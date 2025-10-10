@@ -17,7 +17,7 @@ public class MecanumOdometry implements IOdometry {
     final IAction<Telemetry> telem = new WithTelemetry.Action<WithTelemetry.ITelemetry>(new WithTelemetry.ITelemetry() {
         @Override
         public String getName() {
-            return "Mecanum Drive";
+            return "Mecanum Odometry";
         }
 
         @Override
@@ -34,6 +34,7 @@ public class MecanumOdometry implements IOdometry {
     }
 
     public static class WheelSpec {
+
         public final float radius, ticksPerRev, displacement, angleOffPerp;
 
         ///  cm
@@ -51,7 +52,6 @@ public class MecanumOdometry implements IOdometry {
         }
     }
 
-
     public MecanumOdometry(DriveMotors _drive, WheelSpec _wheelSpec) {
         pos = Vec2Rot.zero();
         vel = Vec2Rot.zero();
@@ -67,9 +67,6 @@ public class MecanumOdometry implements IOdometry {
     public void loop(float dt) {
         DriveMotors.Positions current = drive.getPositions();
 
-        current.dr = -current.dr;
-        current.ur = -current.ur;
-
         DriveMotors.Positions dEncPos = current
                 .componentwiseSub(posReadings)
                 .componentwiseScl(wheelSpec.distancePerTick);
@@ -80,12 +77,13 @@ public class MecanumOdometry implements IOdometry {
         Vec2Rot dPos = new Vec2Rot(
                 dEncPos.ul + dEncPos.ur + dEncPos.dr + dEncPos.dl,
                 dEncPos.ul + dEncPos.dr - dEncPos.ur - dEncPos.dl,
-                (dEncPos.ur + dEncPos.dr - dEncPos.ul - dEncPos.dl) *
-                        wheelSpec.xDisplacement
-        ).componentwiseScl(1f/4);
+                (dEncPos.ul + dEncPos.dl - dEncPos.ur - dEncPos.dr) /
+                        wheelSpec.xDisplacement / 4f
+        ).componentwiseScl(1f/4f);
 
-        float cosH = (float)Math.cos(pos.r);
-        float sinH = (float)Math.sin(pos.r);
+        float midHeading = pos.r + dPos.r * 0.5f;
+        float cosH = (float)Math.cos(midHeading);
+        float sinH = (float)Math.sin(midHeading);
         Vec2Rot dGlobalPos = new Vec2Rot(
                 dPos.x * cosH - dPos.y * sinH,
                 dPos.x * sinH + dPos.y * cosH,
@@ -123,5 +121,9 @@ public class MecanumOdometry implements IOdometry {
     @Override
     public Vec2Rot getAcc() {
         return acc;
+    }
+
+    public void resetHeading() {
+        pos.r = 0f;
     }
 }

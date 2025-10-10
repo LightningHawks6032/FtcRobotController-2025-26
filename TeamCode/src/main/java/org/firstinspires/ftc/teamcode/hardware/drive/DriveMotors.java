@@ -6,6 +6,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
+import org.firstinspires.ftc.teamcode.components.action.ActionGroup;
 import org.firstinspires.ftc.teamcode.components.action.IAction;
 import org.firstinspires.ftc.teamcode.hardware.DcMotorWrapper;
 import org.firstinspires.ftc.teamcode.hardware.DebugMotor;
@@ -25,15 +26,19 @@ import org.firstinspires.ftc.teamcode.util.WithTelemetry;
  */
 
 
-public class DriveMotors {
+public class DriveMotors implements WithTelemetry.IWithTelemetry {
     final IMotor ul;
     final IMotor ur;
     final IMotor dl;
     final IMotor dr;
 
+    EncoderPositionSignMap signMap;
+
+    private final IAction<Telemetry> telem;
     public IMotor ul() {return ul;}
     public IMotor ur() {return ur;}
     public IMotor dl() {return dl;}
+
     public IMotor dr() {return dr;}
 
     public DriveMotors(IMotor _ul, IMotor _ur, IMotor _dr, IMotor _dl) {
@@ -41,6 +46,20 @@ public class DriveMotors {
         ur = _ur;
         dr = _dr;
         dl = _dl;
+
+        telem = new ActionGroup<>(
+                WithTelemetry.header(() -> "Drive Motors"),
+                ul.getTelemetryAction(),
+                ur.getTelemetryAction(),
+                dr.getTelemetryAction(),
+                dl.getTelemetryAction()
+        );
+
+        signMap = new EncoderPositionSignMap();
+    }
+    @Override
+    public IAction<Telemetry> getTelemetryAction() {
+        return telem;
     }
 
     public static class Positions {
@@ -65,14 +84,39 @@ public class DriveMotors {
             return new Positions(ul * scl, ur * scl, dr * scl, dl * scl);
         }
     }
+    public static class EncoderPositionSignMap {
+        public boolean ul, ur, dr, dl;
+
+        public EncoderPositionSignMap(boolean _ul, boolean _ur, boolean _dr, boolean _dl) {
+            ul = _ul;
+            ur = _ur;
+            dr = _dr;
+            dl = _dl;
+        }
+        public EncoderPositionSignMap() {
+            this(true, true, true, true);
+        }
+        public static int sign(boolean b) {return b ? 1 : -1;}
+        public DriveMotors.Positions apply(@NonNull DriveMotors.Positions _pos) {
+            return new DriveMotors.Positions(
+                    _pos.ul * sign(ul),
+                    _pos.ur * sign(ur),
+                    _pos.dr * sign(dr),
+                    _pos.dl * sign(dl)
+            );
+        }
+    }
+    public void setEncoderPositionSignMap(EncoderPositionSignMap _map) {
+        signMap = _map;
+    }
 
     public Positions getPositions() {
-        return new Positions(
+        return signMap.apply( new DriveMotors.Positions(
                 ul.getPosition(),
                 ur.getPosition(),
                 dr.getPosition(),
                 dl.getPosition()
-        );
+        ));
     }
 
     @NonNull

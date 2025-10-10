@@ -61,4 +61,14 @@ public class WithTelemetry {
             }
         });
     }
+
+    public static IAction<Telemetry> header(Supplier<String> _getName) {
+        return new WithTelemetry.Action<WithTelemetry.ITelemetry>(new WithTelemetry.ITelemetry() {
+           @Override
+           public String getName() {return _getName.get();}
+
+           @Override
+           public  void loop(@NonNull Telemetry _telemetry) {}
+        });
+    }
 }

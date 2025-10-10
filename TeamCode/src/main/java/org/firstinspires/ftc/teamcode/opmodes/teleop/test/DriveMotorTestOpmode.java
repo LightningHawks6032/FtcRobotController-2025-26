@@ -246,6 +246,7 @@ public class DriveMotorTestOpmode extends OpMode {
     ElapsedTime timer;
 
     BiFunction<Vec2, Float, Vec2Rot> usingFieldCentric;
+    boolean fieldCentricLock = false;
     @Override
     public void init() {
         robot = new RobotController();
@@ -271,10 +272,16 @@ public class DriveMotorTestOpmode extends OpMode {
                     return usingFieldCentric.apply(v1, r.x);}//new Vec2Rot(v1, r.x);}
         );
 
+        drive.setEncoderPositionSignMap(new DriveMotors.EncoderPositionSignMap(
+                false,
+                false,
+                false,
+                false
+        ));
         odometry = new MecanumOdometry(drive, new MecanumOdometry.WheelSpec(
                 7,
                 MotorSpec.GOBILDA_5203_2402_0003.encoderResolution * MotorSpec.GOBILDA_5203_2402_0003.gearRatio,
-                35,
+                20,
                 (float)Math.PI / 4f
         ));
 
@@ -285,17 +292,17 @@ public class DriveMotorTestOpmode extends OpMode {
                 .loops(new PredicateAction<>(new EmptyAction<>(), driveAction, (robot, v) -> actionExecutor.running()))
                 .telemetry(
                         odometry.getTelemetryAction(),
-                        drive.ul().getTelemetryAction(),
-                        drive.ur().getTelemetryAction(),
-                        drive.dr().getTelemetryAction(),
-                        drive.dl().getTelemetryAction()
+                        drive.getTelemetryAction()
                 )
                 .build();
 
 
         timer = new ElapsedTime();
 
-        usingFieldCentric = (v, r) -> new Vec2Rot(v.rotateOrigin(-odometry.getPos().r), r);
+        usingFieldCentric = (v, r) -> {
+            if (!fieldCentricLock) return new Vec2Rot(v, r);
+            return new Vec2Rot(v.rotateOrigin(-odometry.getPos().r), r);
+        };
     }
 
     @Override
@@ -311,5 +318,16 @@ public class DriveMotorTestOpmode extends OpMode {
         timer.reset();
 
         inputResponseManager.loop();
+
+        if (gamepad1.a) {
+            fieldCentricLock = true;
+        }
+        else if (gamepad1.b) {
+            fieldCentricLock = false;
+        }
+        else if (gamepad1.x) {
+            odometry.resetHeading();
+        }
+
     }
 }
