@@ -246,7 +246,6 @@ public class DriveMotorTestOpmode extends OpMode {
     ElapsedTime timer;
 
     BiFunction<Vec2, Float, Vec2Rot> usingFieldCentric;
-    boolean fieldCentricLock = false;
     @Override
     public void init() {
         robot = new RobotController();
@@ -267,8 +266,6 @@ public class DriveMotorTestOpmode extends OpMode {
         SplitAction<Vec2, Vec2, Vec2Rot> driveAction = new SplitAction<>(
                 new DirectDriveAction(drive),
                 (v1, r) -> {
-
-                    telemetry.addData("rotation", r.x);
                     return usingFieldCentric.apply(v1, r.x);}//new Vec2Rot(v1, r.x);}
         );
 
@@ -299,10 +296,7 @@ public class DriveMotorTestOpmode extends OpMode {
 
         timer = new ElapsedTime();
 
-        usingFieldCentric = (v, r) -> {
-            if (!fieldCentricLock) return new Vec2Rot(v, r);
-            return new Vec2Rot(v.rotateOrigin(-odometry.getPos().r), r);
-        };
+        usingFieldCentric = (v, r) ->  new Vec2Rot(v.rotateOrigin(-odometry.getPos().r), r);
     }
 
     @Override
@@ -319,13 +313,7 @@ public class DriveMotorTestOpmode extends OpMode {
 
         inputResponseManager.loop();
 
-        if (gamepad1.a) {
-            fieldCentricLock = true;
-        }
-        else if (gamepad1.b) {
-            fieldCentricLock = false;
-        }
-        else if (gamepad1.x) {
+        if (gamepad1.x) {
             odometry.resetHeading();
         }
 
