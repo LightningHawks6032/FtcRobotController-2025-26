@@ -62,8 +62,6 @@ public class ThreeWheelOdometry implements IOdometry{
         }
     }
 
-
-
     @Override
     public void loop(float dt) {
 
@@ -76,7 +74,7 @@ public class ThreeWheelOdometry implements IOdometry{
         if (Math.abs(dTheta) < 1e-6) {
              dPosXY = new Vec2(
                     (dEncPos.x + dEncPos.y) / 2f,
-                    dEncPos.r
+                    dEncPos.r - wheelSpec.backWheel.x * dTheta
             );
         } else {
             float radius = (dEncPos.x + dEncPos.y) / (2f * dTheta);
@@ -95,7 +93,7 @@ public class ThreeWheelOdometry implements IOdometry{
         Vec2Rot dGlobalPos = new Vec2Rot(
                 dPos.x * cosH - dPos.y * sinH,
                 dPos.x * sinH + dPos.y * cosH,
-                dPos.x
+                dPos.r
         );
         Vec2Rot newPos = pos.componentwiseAdd(dGlobalPos);
 
@@ -137,7 +135,7 @@ public class ThreeWheelOdometry implements IOdometry{
     final IAction<Telemetry> telem = new WithTelemetry.Action<WithTelemetry.ITelemetry>(new WithTelemetry.ITelemetry() {
         @Override
         public String getName() {
-            return "Mecanum Odometry";
+            return "Three Wheel Odometry";
         }
 
         @Override
@@ -160,5 +158,7 @@ public class ThreeWheelOdometry implements IOdometry{
 
         wheelSpec = _wheelSpec;
         wheels = _wheels;
+
+        prevPos = wheels.getPositions();
     }
 }
