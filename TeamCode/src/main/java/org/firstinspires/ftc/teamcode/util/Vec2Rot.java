@@ -32,8 +32,7 @@
         public Vec2 asVec2() {
             return new Vec2(x, y);
         }
-        static Vec2Rot _zero = new Vec2Rot(0,0,0);
-        public static Vec2Rot zero() {return _zero;}
+        public static Vec2Rot zero() {return new Vec2Rot(0,0,0);}
 
         @NonNull
         public String toString() {

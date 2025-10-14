@@ -38,7 +38,6 @@ public class DriveMotors implements WithTelemetry.IWithTelemetry {
     public IMotor ul() {return ul;}
     public IMotor ur() {return ur;}
     public IMotor dl() {return dl;}
-
     public IMotor dr() {return dr;}
 
     public DriveMotors(IMotor _ul, IMotor _ur, IMotor _dr, IMotor _dl) {
@@ -57,11 +56,17 @@ public class DriveMotors implements WithTelemetry.IWithTelemetry {
 
         signMap = new EncoderPositionSignMap();
     }
+
+    public void setPower(float _ul, float _ur, float _dr, float _dl) {
+        ul.setPower(_ul);
+        ur.setPower(_ur);
+        dr.setPower(_dr);
+        dl.setPower(_dl);
+    }
     @Override
     public IAction<Telemetry> getTelemetryAction() {
         return telem;
     }
-
     public static class Positions {
         public float ul, ur, dr, dl;
 
@@ -147,8 +152,6 @@ public class DriveMotors implements WithTelemetry.IWithTelemetry {
                 new DcMotorWrapper.BuildOpt(_dl, _usingEncoder, _motorSpec).fromMap(_map)
         );
     }
-
-    // TODO: write telemetry wrapper
 
     @NonNull
     public static DriveMotors fromMapDebugMotor(@NonNull HardwareMap.DeviceMapping<DcMotor> _map,

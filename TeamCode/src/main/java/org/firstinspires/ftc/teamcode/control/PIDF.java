@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.control;
 
+import androidx.annotation.NonNull;
+
 public class PIDF {
 
     public static class Weights {
@@ -20,44 +22,54 @@ public class PIDF {
         }
     }
 
-    Weights weights;
 
-    float accumulatedError;
+    public static class Controller implements IControlLoop{
+        Weights weights;
+        float accumulatedError;
+        float prev_tx;
 
-    float previousFilteredDerivative;
+        //float previousFilteredDerivative;
 
-    public void setWeights(Weights _weights) {
-        weights = _weights;
-    }
+        public void setWeights(Weights _weights) {
+            weights = _weights;
+        }
 
-    public Float loop(float _current_x, float _target_x, float _target_v, float _current_v, float _dt) {
-        float x_error = _target_x - _current_x;
-        float v_error = _target_v - _current_v;
+        public float loop(float _current_x, float _target_x, float _dt) {
+            float x_error = _target_x - _current_x;
+            // TODO: add deadband
 
-        // TODO: add deadband
+            accumulatedError *= (float) Math.pow(weights.integralDecay, _dt);
+            accumulatedError += x_error * _dt;
 
-        accumulatedError *= (float) Math.pow(weights.integralDecay, _dt);
-        accumulatedError += x_error * _dt;
-
-        float derivative = _target_v - _current_v;
+            float derivative = (_target_x - prev_tx) / _dt;
 
 //        float filteredDerivative = derivative * weights.lowPassFilter + previousFilteredDerivative * (1 - weights.lowPassFilter);
 //        previousFilteredDerivative = filteredDerivative;
 
-        float ret = (weights.kP * x_error + weights.kI * accumulatedError + weights.kD * accumulatedError + _target_x * weights.kF);
+            return (weights.kP * x_error + weights.kI * accumulatedError + weights.kD * derivative + _target_x * weights.kF);
+        }
 
-        return ret;
+        public Controller(Weights _weights) {
+            weights = _weights;
+
+
+            accumulatedError = 0;
+            prev_tx = 0;
+
+
+            //previousFilteredDerivative = 0f;
+        }
     }
 
-    public PIDF(Weights _weights) {
-        weights = _weights;
+    public static class BuildOpt implements IControlLoopBuildOpt<Controller> {
 
+        Weights weights;
 
-        accumulatedError = 0;
+        public BuildOpt(@NonNull Weights _weights) {weights = _weights;}
 
-
-        //previousFilteredDerivative = 0f;
+        @Override
+        public Controller build() {
+            return new Controller(weights);
+        }
     }
-
-
 }

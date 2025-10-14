@@ -10,7 +10,7 @@ import org.firstinspires.ftc.teamcode.hardware.DcMotorWrapper;
 public class TestingTeleop extends OpMode {
 
     DcMotorWrapper motor;
-    PIDF posC, velC;
+    PIDF.Controller posC, velC;
 
     float targetPosition = 0;
     final float targetVelocity = 0;
@@ -20,9 +20,9 @@ public class TestingTeleop extends OpMode {
     @Override
     public void init() {
         motor = new DcMotorWrapper(hardwareMap.dcMotor.get("motor1"), true, null);
-        posC = new PIDF(new PIDF.Weights(1f, 0f, 0.4f, 0, 0.75f, 0.2f));
+        posC = new PIDF.Controller(new PIDF.Weights(1f, 0f, 0.4f, 0, 0.75f, 0.2f));
 
-        velC = new PIDF(new PIDF.Weights(0.1f, 0, 0.5f, 1, 0.75f, 0.15f));
+        velC = new PIDF.Controller(new PIDF.Weights(0.1f, 0, 0.5f, 1, 0.75f, 0.15f));
     }
 
     void rs() {
