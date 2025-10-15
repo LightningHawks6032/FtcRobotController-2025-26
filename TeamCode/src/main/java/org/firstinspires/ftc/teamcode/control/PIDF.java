@@ -9,15 +9,15 @@ public class PIDF {
         final float kI;
         final float kD;
         final float kF;
-        final float integralDecay;
+        final float decayRate;
         final float lowPassFilter;
 
-        public Weights(float _kP, float _kI, float _kD, float _kF, float _integralDecay, float _lowPassFilter) {
+        public Weights(float _kP, float _kI, float _kD, float _kF, float _decayRate, float _lowPassFilter) {
             kP = _kP;
             kI = _kI;
             kD = _kD;
             kF = _kF;
-            integralDecay = _integralDecay;
+            decayRate = _decayRate;
             lowPassFilter = _lowPassFilter;
         }
     }
@@ -26,9 +26,8 @@ public class PIDF {
     public static class Controller implements IControlLoop{
         Weights weights;
         float accumulatedError;
-        float prev_tx;
-
-        //float previousFilteredDerivative;
+        float prev_error;
+        float previousFilteredDerivative;
 
         public void setWeights(Weights _weights) {
             weights = _weights;
@@ -38,15 +37,15 @@ public class PIDF {
             float x_error = _target_x - _current_x;
             // TODO: add deadband
 
-            accumulatedError *= (float) Math.pow(weights.integralDecay, _dt);
+            accumulatedError *= (float) Math.exp(-weights.decayRate * _dt);
             accumulatedError += x_error * _dt;
 
-            float derivative = (_target_x - prev_tx) / _dt;
+            float derivative = (x_error - prev_error) / _dt;
 
-//        float filteredDerivative = derivative * weights.lowPassFilter + previousFilteredDerivative * (1 - weights.lowPassFilter);
-//        previousFilteredDerivative = filteredDerivative;
+        float filteredDerivative = derivative * weights.lowPassFilter + previousFilteredDerivative * (1 - weights.lowPassFilter);
+        previousFilteredDerivative = filteredDerivative;
 
-            return (weights.kP * x_error + weights.kI * accumulatedError + weights.kD * derivative + _target_x * weights.kF);
+            return (weights.kP * x_error + weights.kI * accumulatedError + weights.kD * filteredDerivative + _target_x * weights.kF);
         }
 
         public Controller(Weights _weights) {
@@ -54,7 +53,7 @@ public class PIDF {
 
 
             accumulatedError = 0;
-            prev_tx = 0;
+            prev_error = 0;
 
 
             //previousFilteredDerivative = 0f;
