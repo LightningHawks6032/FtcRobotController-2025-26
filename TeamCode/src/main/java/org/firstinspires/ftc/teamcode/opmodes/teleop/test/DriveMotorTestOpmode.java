@@ -1,9 +1,9 @@
 package org.firstinspires.ftc.teamcode.opmodes.teleop.test;
-
 import androidx.annotation.NonNull;
 
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.auto.action.AutoActionSequence;
@@ -14,6 +14,9 @@ import org.firstinspires.ftc.teamcode.components.RobotController;
 import org.firstinspires.ftc.teamcode.components.action.EmptyAction;
 import org.firstinspires.ftc.teamcode.components.action.IAction;
 import org.firstinspires.ftc.teamcode.components.action.LaunchAutoSequenceAction;
+import org.firstinspires.ftc.teamcode.control.IControlLoop;
+import org.firstinspires.ftc.teamcode.control.IControlLoopBuildOpt;
+import org.firstinspires.ftc.teamcode.control.PIDF;
 import org.firstinspires.ftc.teamcode.hardware.GamepadWrapper;
 import org.firstinspires.ftc.teamcode.hardware.IMotor;
 import org.firstinspires.ftc.teamcode.hardware.InputResponseManager;
@@ -21,6 +24,8 @@ import org.firstinspires.ftc.teamcode.hardware.MotorSpec;
 import org.firstinspires.ftc.teamcode.hardware.drive.DriveMotors;
 import org.firstinspires.ftc.teamcode.hardware.drive.odometry.IOdometry;
 import org.firstinspires.ftc.teamcode.hardware.drive.odometry.MecanumOdometry;
+import org.firstinspires.ftc.teamcode.hardware.drive.odometry.ThreeWheelOdometry;
+import org.firstinspires.ftc.teamcode.hardware.drive.odometry.deadwheel.DeadwheelWrapper;
 import org.firstinspires.ftc.teamcode.util.Pair;
 import org.firstinspires.ftc.teamcode.util.Vec2;
 import org.firstinspires.ftc.teamcode.util.Vec2Rot;
@@ -108,9 +113,36 @@ public class DriveMotorTestOpmode extends OpMode {
         }
     }
 
+    static class DriveController {
+        IControlLoop cx, cy, cr;
+
+        public DriveController(@NonNull IControlLoopBuildOpt<? extends IControlLoop> _cx,
+                               @NonNull IControlLoopBuildOpt<? extends IControlLoop> _cy,
+                               @NonNull IControlLoopBuildOpt<? extends IControlLoop> _cr) {
+            cx = _cx.build();
+            cy = _cy.build();
+            cr = _cr.build();
+        }
+
+        public DriveController(@NonNull IControlLoopBuildOpt<? extends  IControlLoop> _cp,
+                               @NonNull IControlLoopBuildOpt<? extends IControlLoop> _cr) {
+            cx = _cp.build();
+            cy = _cp.build();
+            cr = _cr.build();
+        }
+
+
+        public Vec2Rot loop(@NonNull Vec2Rot current, Vec2Rot target, float dt) {
+            return new Vec2Rot(
+                    cx.loop(current.x, current.x, dt),
+                    cy.loop(current.y, current.y, dt),
+                    cr.loop(current.r, current.r, dt)
+            );
+        }
+    }
+
     static class DirectDriveAction implements IAction<Vec2Rot> {
         DriveMotors drive;
-
         public DirectDriveAction(DriveMotors _drive) {
             drive = _drive;
         }
@@ -135,10 +167,12 @@ public class DriveMotorTestOpmode extends OpMode {
 
             Vec2Rot pow = normalize(data);
 
-            drive.ul().setPower(pow.y - pow.x - pow.r);
-            drive.ur().setPower(pow.y + pow.x + pow.r);
-            drive.dl().setPower(pow.y + pow.x - pow.r);
-            drive.dr().setPower(pow.y - pow.x + pow.r);
+            drive.setPower(
+                    (pow.y - pow.x - pow.r),
+                    (pow.y + pow.x + pow.r),
+                    (pow.y + pow.x - pow.r),
+                    (pow.y - pow.x + pow.r)
+            );
         }
     }
 
@@ -244,11 +278,11 @@ public class DriveMotorTestOpmode extends OpMode {
     InputResponseManager inputResponseManager;
     IOdometry odometry;
     ElapsedTime timer;
-
     BiFunction<Vec2, Float, Vec2Rot> usingFieldCentric;
     @Override
     public void init() {
         robot = new RobotController();
+
         drive = DriveMotors.fromMapDcMotor(hardwareMap.dcMotor, true, MotorSpec.GOBILDA_5203_2402_0019,
                 "lf", "rf", "rr", "lr"
         );
@@ -266,7 +300,7 @@ public class DriveMotorTestOpmode extends OpMode {
         SplitAction<Vec2, Vec2, Vec2Rot> driveAction = new SplitAction<>(
                 new DirectDriveAction(drive),
                 (v1, r) -> {
-                    return usingFieldCentric.apply(v1, r.x);}//new Vec2Rot(v1, r.x);}
+                    return new Vec2Rot(v1, r.x);}//usingFieldCentric.apply(v1, r.x);}
         );
 
         drive.setEncoderPositionSignMap(new DriveMotors.EncoderPositionSignMap(
@@ -275,12 +309,23 @@ public class DriveMotorTestOpmode extends OpMode {
                 false,
                 false
         ));
-        odometry = new MecanumOdometry(drive, new MecanumOdometry.WheelSpec(
-                7,
-                MotorSpec.GOBILDA_5203_2402_0003.encoderResolution * MotorSpec.GOBILDA_5203_2402_0003.gearRatio,
-                20,
-                (float)Math.PI / 4f
-        ));
+        odometry = new ThreeWheelOdometry(
+                new ThreeWheelOdometry.WheelSpec(
+                        2000,
+                        1.6f,
+                        new Vec2(0, -1.6f),
+                        new Vec2(0, 1.6f),
+                        new Vec2(0.6f, 0)
+                ),
+                ThreeWheelOdometry.Wheels.fromMap(hardwareMap.dcMotor, "rf", "lf", "rr")
+        );
+
+//        odometry = new MecanumOdometry(drive, new MecanumOdometry.WheelSpec(
+//                7,
+//                MotorSpec.GOBILDA_5203_2402_0003.encoderResolution * MotorSpec.GOBILDA_5203_2402_0003.gearRatio,
+//                20,
+//                (float)Math.PI / 4f
+//        ));
 
         inputResponseManager = new InputResponseManager.Builder(new GamepadWrapper(gamepad1), robot, telemetry)
                 .AAction(actionExecutor)
