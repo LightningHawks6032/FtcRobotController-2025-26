@@ -4,6 +4,7 @@ import androidx.annotation.NonNull;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.components.RobotController;
+import org.firstinspires.ftc.teamcode.components.action.ActionGroup;
 import org.firstinspires.ftc.teamcode.components.action.IAction;
 
 import java.util.function.Consumer;
@@ -70,5 +71,12 @@ public class WithTelemetry {
            @Override
            public  void loop(@NonNull Telemetry _telemetry) {}
         });
+    }
+
+    public static IAction<Telemetry> withHeader(Supplier<String> _getName, IAction<Telemetry> _action) {
+        return new ActionGroup<Telemetry>(
+                header(_getName),
+                _action
+        );
     }
 }

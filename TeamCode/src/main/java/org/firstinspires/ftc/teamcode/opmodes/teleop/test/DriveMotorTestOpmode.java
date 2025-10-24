@@ -1,34 +1,39 @@
 package org.firstinspires.ftc.teamcode.opmodes.teleop.test;
 import androidx.annotation.NonNull;
 
+import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import org.firstinspires.ftc.robotcore.external.Telemetry;
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
 import org.firstinspires.ftc.teamcode.auto.action.AutoActionSequence;
 import org.firstinspires.ftc.teamcode.auto.action.ElapsedContainer;
 import org.firstinspires.ftc.teamcode.auto.action.IAutoAction;
 import org.firstinspires.ftc.teamcode.auto.action.WaitAutoAction;
+import org.firstinspires.ftc.teamcode.components.DirectDrive;
 import org.firstinspires.ftc.teamcode.components.RobotController;
 import org.firstinspires.ftc.teamcode.components.action.EmptyAction;
 import org.firstinspires.ftc.teamcode.components.action.IAction;
 import org.firstinspires.ftc.teamcode.components.action.LaunchAutoSequenceAction;
+import org.firstinspires.ftc.teamcode.components.action.PredicateAction;
+import org.firstinspires.ftc.teamcode.components.action.SplitAction;
 import org.firstinspires.ftc.teamcode.control.IControlLoop;
 import org.firstinspires.ftc.teamcode.control.IControlLoopBuildOpt;
-import org.firstinspires.ftc.teamcode.control.PIDF;
 import org.firstinspires.ftc.teamcode.hardware.GamepadWrapper;
 import org.firstinspires.ftc.teamcode.hardware.IMotor;
 import org.firstinspires.ftc.teamcode.hardware.InputResponseManager;
 import org.firstinspires.ftc.teamcode.hardware.MotorSpec;
 import org.firstinspires.ftc.teamcode.hardware.drive.DriveMotors;
 import org.firstinspires.ftc.teamcode.hardware.drive.odometry.IOdometry;
-import org.firstinspires.ftc.teamcode.hardware.drive.odometry.MecanumOdometry;
 import org.firstinspires.ftc.teamcode.hardware.drive.odometry.ThreeWheelOdometry;
-import org.firstinspires.ftc.teamcode.hardware.drive.odometry.deadwheel.DeadwheelWrapper;
 import org.firstinspires.ftc.teamcode.util.Pair;
 import org.firstinspires.ftc.teamcode.util.Vec2;
 import org.firstinspires.ftc.teamcode.util.Vec2Rot;
+import org.firstinspires.ftc.teamcode.util.WithTelemetry;
 
 import java.util.function.BiFunction;
 import java.util.function.Function;
@@ -75,44 +80,6 @@ public class DriveMotorTestOpmode extends OpMode {
         }
     }
 
-    static class PredicateAction <Ty> implements IAction<Ty> {
-
-        IAction<Ty> onTrue;
-        IAction<Ty> onFalse;
-        BiFunction<RobotController, Ty, Boolean> pred;
-
-
-        public PredicateAction(IAction<Ty> _onTrue) {
-            onTrue = _onTrue;
-            onFalse = new EmptyAction<>();
-        }
-
-        public PredicateAction(IAction<Ty> _onTrue, IAction<Ty> _onFalse, BiFunction<RobotController, Ty, Boolean> _pred) {
-            onTrue = _onTrue;
-            onFalse = _onFalse;
-            pred = _pred;
-        }
-
-        IAction<Ty> getRunningAction(boolean pred) {
-            return pred ? onTrue : onFalse;
-        }
-
-        @Override
-        public void init(RobotController robot, Ty data) {
-            getRunningAction(pred.apply(robot, data)).init(robot, data);
-        }
-
-        @Override
-        public void start(RobotController robot, Ty data) {
-            getRunningAction(pred.apply(robot, data)).start(robot, data);
-        }
-
-        @Override
-        public void loop(RobotController robot, Ty data) {
-            getRunningAction(pred.apply(robot, data)).loop(robot, data);
-        }
-    }
-
     static class DriveController {
         IControlLoop cx, cy, cr;
 
@@ -141,124 +108,36 @@ public class DriveMotorTestOpmode extends OpMode {
         }
     }
 
-    static class DirectDriveAction implements IAction<Vec2Rot> {
-        DriveMotors drive;
-        public DirectDriveAction(DriveMotors _drive) {
-            drive = _drive;
+    public static class IMUTest {
+        IMU imu;
+
+        public IMU imu() {return imu;}
+
+        public IMUTest(IMU _imu) {
+            imu = _imu;
+
+            RevHubOrientationOnRobot.LogoFacingDirection logoDirection = RevHubOrientationOnRobot.LogoFacingDirection.RIGHT;
+            RevHubOrientationOnRobot.UsbFacingDirection  usbDirection  = RevHubOrientationOnRobot.UsbFacingDirection.FORWARD;
+
+            RevHubOrientationOnRobot orientationOnRobot = new RevHubOrientationOnRobot(logoDirection, usbDirection);
+
+            imu.initialize(new IMU.Parameters(orientationOnRobot));
         }
 
-        Vec2Rot normalize(@NonNull Vec2Rot vec) {
-            float d = Math.max(Math.abs(vec.x) + Math.abs(vec.y) + Math.abs(vec.r), 1);
-            return new Vec2Rot(vec.x / d, vec.y / d, vec.r / d);
-        }
+        IAction<Telemetry> telemetryAction = WithTelemetry.fromLambda(() -> "IMU", (telem) -> {
+            YawPitchRollAngles angles = imu.getRobotYawPitchRollAngles();
 
-        @Override
-        public void init(RobotController robot, Vec2Rot data) {
+            telem.addData("Yaw", angles.getYaw(AngleUnit.DEGREES));
+            telem.addData("Pitch", angles.getPitch(AngleUnit.DEGREES));
+            telem.addData("Roll", angles.getRoll(AngleUnit.DEGREES));
+        });
 
-        }
-
-        @Override
-        public void start(RobotController robot, Vec2Rot data) {
-
-        }
-
-        @Override
-        public void loop(RobotController robot, Vec2Rot data) {
-
-            Vec2Rot pow = normalize(data);
-
-            drive.setPower(
-                    (pow.y - pow.x - pow.r),
-                    (pow.y + pow.x + pow.r),
-                    (pow.y + pow.x - pow.r),
-                    (pow.y - pow.x + pow.r)
-            );
+        public IAction<Telemetry> getTelemetryAction() {
+            return telemetryAction;
         }
     }
 
     /// Provides three actions, the setters for `Ty1` and `Ty2` and the loop action that implements the split action
-    static class SplitAction <Ty1, Ty2, TySplit> implements IAction<Object> {
-        IAction<Ty1> leftSetter;
-        IAction<Ty2> rightSetter;
-        IAction<TySplit> action;
-
-        public IAction<Ty1> leftSetter() {
-            return leftSetter;
-        }
-
-        public IAction<Ty2> rightSetter() {
-            return rightSetter;
-        }
-
-        Ty1 leftData;
-        Ty2 rightData;
-
-        BiFunction<Ty1, Ty2, TySplit> conversionMap;
-
-        class LeftSetterAction implements IAction<Ty1> {
-
-            @Override
-            public void init(RobotController robot, Ty1 data) {
-                leftData = data;
-            }
-
-            @Override
-            public void start(RobotController robot, Ty1 data) {
-                leftData = data;
-            }
-
-            @Override
-            public void loop(RobotController robot, Ty1 data) {
-                leftData = data;
-            }
-        }
-
-        class RightSetterAction implements IAction<Ty2> {
-
-            @Override
-            public void init(RobotController robot, Ty2 data) {
-                rightData = data;
-            }
-
-            @Override
-            public void start(RobotController robot, Ty2 data) {
-                rightData = data;
-            }
-
-            @Override
-            public void loop(RobotController robot, Ty2 data) {
-                rightData = data;
-            }
-        }
-
-        public SplitAction(IAction<TySplit> _action, BiFunction<Ty1, Ty2, TySplit> _conversionMap) {
-            action = _action;
-            conversionMap = _conversionMap;
-            leftSetter = new LeftSetterAction();
-            rightSetter = new RightSetterAction();
-        }
-
-        @Override
-        public void init(RobotController robot, Object data) {
-            if (leftData != null && rightData != null) {
-                action.init(robot, conversionMap.apply(leftData, rightData));
-            }
-        }
-
-        @Override
-        public void start(RobotController robot, Object data) {
-            if (leftData != null && rightData != null) {
-                action.start(robot, conversionMap.apply(leftData, rightData));
-            }
-        }
-
-        @Override
-        public void loop(RobotController robot, Object data) {
-            if (leftData != null && rightData != null) {
-                action.loop(robot, conversionMap.apply(leftData, rightData));
-            }
-        }
-    }
     @NonNull
     static AutoActionSequence<ElapsedContainer> testDrive(@NonNull DriveMotors drive) {
         return new AutoActionSequence<>(
@@ -272,36 +151,41 @@ public class DriveMotorTestOpmode extends OpMode {
         );
     }
 
+    IMUTest imu;
+
     DriveMotors drive;
     LaunchAutoSequenceAction<ElapsedContainer> actionExecutor;
     RobotController robot;
+    DirectDrive directDrive;
     InputResponseManager inputResponseManager;
     IOdometry odometry;
     ElapsedTime timer;
-    BiFunction<Vec2, Float, Vec2Rot> usingFieldCentric;
+    BiFunction<Vec2, Vec2, Vec2Rot> usingFieldCentric;
     @Override
     public void init() {
         robot = new RobotController();
+        imu = new IMUTest(hardwareMap.get(IMU.class, "imu"));
 
         drive = DriveMotors.fromMapDcMotor(hardwareMap.dcMotor, true, MotorSpec.GOBILDA_5203_2402_0019,
-                "lf", "rf", "rr", "lr"
+                "fl", "fr", "br", "bl"
         );
+        usingFieldCentric = (v, r) ->  new Vec2Rot(v.rotateOrigin((float) imu.imu().getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS)), r.x);
+        directDrive = new DirectDrive(drive, usingFieldCentric);
 
         drive.ur().setDirection(IMotor.Direction.REVERSE);
         drive.dl().setDirection(IMotor.Direction.FORWARD);
         drive.dr().setDirection(IMotor.Direction.REVERSE);
         drive.ul().setDirection(IMotor.Direction.FORWARD);
 
-
         actionExecutor = new LaunchAutoSequenceAction<>(
                 testDrive(drive)
         );
 
-        SplitAction<Vec2, Vec2, Vec2Rot> driveAction = new SplitAction<>(
-                new DirectDriveAction(drive),
-                (v1, r) -> {
-                    return new Vec2Rot(v1, r.x);}//usingFieldCentric.apply(v1, r.x);}
-        );
+//        SplitAction<Vec2, Vec2, Vec2Rot> driveAction = new SplitAction<>(
+//                new DirectDrive(drive),
+//                (v1, r) -> {
+//                    return usingFieldCentric.apply(v1, r.x);}
+//        );
 
         drive.setEncoderPositionSignMap(new DriveMotors.EncoderPositionSignMap(
                 false,
@@ -317,7 +201,14 @@ public class DriveMotorTestOpmode extends OpMode {
                         new Vec2(0, 1.6f),
                         new Vec2(0.6f, 0)
                 ),
-                ThreeWheelOdometry.Wheels.fromMap(hardwareMap.dcMotor, "rf", "lf", "rr")
+                ThreeWheelOdometry.Wheels.fromMap(hardwareMap.dcMotor, "fl", "fr", "bl")
+                        .reversalMap(
+                                new ThreeWheelOdometry.WheelReversalPattern(
+                                        false,
+                                        true,
+                                        false
+                                )
+                        )
         );
 
 //        odometry = new MecanumOdometry(drive, new MecanumOdometry.WheelSpec(
@@ -329,19 +220,20 @@ public class DriveMotorTestOpmode extends OpMode {
 
         inputResponseManager = new InputResponseManager.Builder(new GamepadWrapper(gamepad1), robot, telemetry)
                 .AAction(actionExecutor)
-                .leftStickAction(driveAction.leftSetter)
-                .rightStickAction(driveAction.rightSetter)
-                .loops(new PredicateAction<>(new EmptyAction<>(), driveAction, (robot, v) -> actionExecutor.running()))
+                .leftStickAction(directDrive.splitAction().leftSetter())
+                .rightStickAction(directDrive.splitAction().rightSetter())
+                .loops(new PredicateAction<>(new EmptyAction<>(), directDrive.splitAction(), (robot, v) -> actionExecutor.running()))
                 .telemetry(
                         odometry.getTelemetryAction(),
-                        drive.getTelemetryAction()
+                        drive.getTelemetryAction(),
+                        imu.getTelemetryAction()
                 )
                 .build();
 
 
         timer = new ElapsedTime();
 
-        usingFieldCentric = (v, r) ->  new Vec2Rot(v.rotateOrigin(-odometry.getPos().r), r);
+
     }
 
     @Override

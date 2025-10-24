@@ -20,6 +20,18 @@ public class ThreeWheelOdometry implements IOdometry{
 
     Vec2Rot prevPos;
 
+
+    public static class WheelReversalPattern {
+        final boolean left;
+        final boolean right;
+        final boolean back;
+
+        public WheelReversalPattern(boolean _left, boolean _right, boolean _back) {
+            left = _left;
+            right = _right;
+            back = _back;
+        }
+    }
     public static class Wheels {
         public final DeadwheelWrapper left, right, back;
 
@@ -29,8 +41,7 @@ public class ThreeWheelOdometry implements IOdometry{
             back = _back;
         }
 
-        public static Wheels fromMap(HardwareMap.DeviceMapping<DcMotor> _map, String _left, String _right, String _back) {
-
+        public static Wheels fromMap(@NonNull HardwareMap.DeviceMapping<DcMotor> _map, String _left, String _right, String _back) {
             return new Wheels(
                     new DeadwheelWrapper((DcMotorEx)_map.get(_left)),
                     new DeadwheelWrapper((DcMotorEx)_map.get(_right)),
@@ -41,6 +52,13 @@ public class ThreeWheelOdometry implements IOdometry{
 
         public Vec2Rot getPositions() {
             return new Vec2Rot(left.getPosition(), right.getPosition(), back.getPosition());
+        }
+        public Wheels reversalMap(@NonNull WheelReversalPattern pat) {
+            back.setReverse(pat.back);
+            right.setReverse(pat.right);
+            left.setReverse(pat.left);
+
+            return this;
         }
     }
     public static class WheelSpec {

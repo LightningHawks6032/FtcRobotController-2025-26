@@ -48,10 +48,11 @@ public class DriveMotors implements WithTelemetry.IWithTelemetry {
 
         telem = new ActionGroup<>(
                 WithTelemetry.header(() -> "Drive Motors"),
-                ul.getTelemetryAction(),
-                ur.getTelemetryAction(),
-                dr.getTelemetryAction(),
-                dl.getTelemetryAction()
+                WithTelemetry.withHeader(() -> "ul", ul.getTelemetryAction()),
+                WithTelemetry.withHeader(() -> "ur", ur.getTelemetryAction()),
+                WithTelemetry.withHeader(() -> "dr", dr.getTelemetryAction()),
+                WithTelemetry.withHeader(() -> "dl", dl.getTelemetryAction())
+
         );
 
         signMap = new EncoderPositionSignMap();
