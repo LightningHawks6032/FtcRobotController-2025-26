@@ -22,7 +22,6 @@ public class PIDF {
         }
     }
 
-
     public static class Controller implements IControlLoop{
         Weights weights;
         float accumulatedError;
@@ -35,15 +34,21 @@ public class PIDF {
 
         public float loop(float _current_x, float _target_x, float _dt) {
             float x_error = _target_x - _current_x;
-            // TODO: add deadband
+
+            if (x_error <= 1e-3) {
+                x_error = 0;
+            }
+
 
             accumulatedError *= (float) Math.exp(-weights.decayRate * _dt);
             accumulatedError += x_error * _dt;
 
             float derivative = (x_error - prev_error) / _dt;
 
-        float filteredDerivative = derivative * weights.lowPassFilter + previousFilteredDerivative * (1 - weights.lowPassFilter);
-        previousFilteredDerivative = filteredDerivative;
+            float filteredDerivative = derivative * weights.lowPassFilter + previousFilteredDerivative * (1 - weights.lowPassFilter);
+            previousFilteredDerivative = filteredDerivative;
+
+            prev_error = x_error;
 
             return (weights.kP * x_error + weights.kI * accumulatedError + weights.kD * filteredDerivative + _target_x * weights.kF);
         }

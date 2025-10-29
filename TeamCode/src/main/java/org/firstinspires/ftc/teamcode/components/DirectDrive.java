@@ -2,11 +2,14 @@ package org.firstinspires.ftc.teamcode.components;
 
 import androidx.annotation.NonNull;
 
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.teamcode.components.action.IAction;
 import org.firstinspires.ftc.teamcode.components.action.SplitAction;
 import org.firstinspires.ftc.teamcode.hardware.drive.DriveMotors;
+import org.firstinspires.ftc.teamcode.hardware.drive.IIMU;
 import org.firstinspires.ftc.teamcode.util.Vec2;
 import org.firstinspires.ftc.teamcode.util.Vec2Rot;
+import org.jetbrains.annotations.Contract;
 
 import java.util.function.BiFunction;
 
@@ -31,17 +34,17 @@ public class DirectDrive {
         }
 
         @Override
-        public void init(RobotController robot, Vec2Rot data) {
+        public void init(IRobot robot, Vec2Rot data) {
 
         }
 
         @Override
-        public void start(RobotController robot, Vec2Rot data) {
+        public void start(IRobot robot, Vec2Rot data) {
 
         }
 
         @Override
-        public void loop(RobotController robot, Vec2Rot data) {
+        public void loop(IRobot robot, Vec2Rot data) {
 
             Vec2Rot pow = normalize(data);
 
@@ -66,5 +69,9 @@ public class DirectDrive {
         splitAction = new SplitAction<>(directDriveAction, conversionMap);
     }
 
-
+    @NonNull
+    @Contract(pure = true)
+    public static BiFunction<Vec2, Vec2, Vec2Rot> fieldCentricFromIMU(IIMU _imu) {
+        return (v, r) ->  new Vec2Rot(v.rotateOrigin((float) _imu.getAngles().getYaw(AngleUnit.RADIANS)), r.x);
+    }
 }

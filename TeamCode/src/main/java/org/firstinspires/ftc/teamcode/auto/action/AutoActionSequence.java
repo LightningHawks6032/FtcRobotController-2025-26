@@ -4,7 +4,7 @@ import org.firstinspires.ftc.teamcode.util.Pair;
 
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-import org.firstinspires.ftc.teamcode.components.RobotController;
+import org.firstinspires.ftc.teamcode.components.IRobot;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -27,26 +27,26 @@ public class AutoActionSequence <DataType extends ElapsedContainer> implements I
     }
 
     @Override
-    public Function<Pair<Float, RobotController>, DataType> getDataProvider() {
+    public Function<Pair<Float, IRobot>, DataType> getDataProvider() {
         return actions.get(idx).getDataProvider();
     }
 
     @Override
-    public void init(RobotController robot, DataType data) {
+    public void init(IRobot robot, DataType data) {
         for (IAutoAction<DataType> action : actions) {
             action.init(robot, action.getDataProvider().apply(new Pair<>(data.elapsed, robot)));
         }
     }
 
     @Override
-    public void start(RobotController robot, DataType data) {
+    public void start(IRobot robot, DataType data) {
         for (IAutoAction<DataType> action : actions) {
             action.start(robot, action.getDataProvider().apply(new Pair<>(data.elapsed, robot)));
         }
     }
 
     @Override
-    public void loop(RobotController robot, DataType data) {
+    public void loop(IRobot robot, DataType data) {
         if (idx >= actions.size()) {return;}
 
         actions.get(idx).loop(robot, data);

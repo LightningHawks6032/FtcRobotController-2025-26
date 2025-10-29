@@ -3,12 +3,11 @@ package org.firstinspires.ftc.teamcode.util;
 import androidx.annotation.NonNull;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
-import org.firstinspires.ftc.teamcode.components.RobotController;
+import org.firstinspires.ftc.teamcode.components.IRobot;
 import org.firstinspires.ftc.teamcode.components.action.ActionGroup;
 import org.firstinspires.ftc.teamcode.components.action.IAction;
 
 import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.function.Supplier;
 
 public class WithTelemetry {
@@ -30,17 +29,17 @@ public class WithTelemetry {
         }
 
         @Override
-        public void init(RobotController robot, Telemetry data) {
+        public void init(IRobot robot, Telemetry data) {
             telemFmt(data);
         }
 
         @Override
-        public void start(RobotController robot, Telemetry data) {
+        public void start(IRobot robot, Telemetry data) {
             telemFmt(data);
         }
 
         @Override
-        public void loop(RobotController robot, Telemetry data) {
+        public void loop(IRobot robot, Telemetry data) {
             telemFmt(data);
         }
     }
@@ -74,7 +73,7 @@ public class WithTelemetry {
     }
 
     public static IAction<Telemetry> withHeader(Supplier<String> _getName, IAction<Telemetry> _action) {
-        return new ActionGroup<Telemetry>(
+        return new ActionGroup<>(
                 header(_getName),
                 _action
         );

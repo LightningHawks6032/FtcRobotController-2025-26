@@ -12,6 +12,7 @@ import org.firstinspires.ftc.teamcode.hardware.drive.odometry.deadwheel.Deadwhee
 import org.firstinspires.ftc.teamcode.util.Vec2;
 import org.firstinspires.ftc.teamcode.util.Vec2Rot;
 import org.firstinspires.ftc.teamcode.util.WithTelemetry;
+import org.jetbrains.annotations.Contract;
 
 public class ThreeWheelOdometry implements IOdometry{
     Vec2Rot pos, vel, acc;
@@ -41,6 +42,8 @@ public class ThreeWheelOdometry implements IOdometry{
             back = _back;
         }
 
+        @NonNull
+        @Contract("_, _, _, _ -> new")
         public static Wheels fromMap(@NonNull HardwareMap.DeviceMapping<DcMotor> _map, String _left, String _right, String _back) {
             return new Wheels(
                     new DeadwheelWrapper((DcMotorEx)_map.get(_left)),

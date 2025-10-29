@@ -1,15 +1,14 @@
-package org.firstinspires.ftc.teamcode.hardware.drive;
+package org.firstinspires.ftc.teamcode.hardware;
 
 import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.components.action.IAction;
-import org.firstinspires.ftc.teamcode.hardware.IMotor;
-import org.firstinspires.ftc.teamcode.hardware.IServo;
+import org.firstinspires.ftc.teamcode.util.Util;
 
 /// Assumes servo is position-based
 public class ServoWrapper implements IServo {
-    float position = 0;
+    float position;
     boolean moving = false;
     IMotor.Direction direction;
     int directionCoeff;
@@ -22,7 +21,7 @@ public class ServoWrapper implements IServo {
     }
     @Override
     public void setPosition(float _position) {
-        position = _position;
+        position = Util.clamp(_position, 0, 1);
         servo.setPosition(position);
     }
     @Override
@@ -62,5 +61,14 @@ public class ServoWrapper implements IServo {
         direction = IMotor.Direction.FORWARD;
         directionCoeff = 1;
         speed = 0.05f;
+        position = (float)_servo.getPosition();
+    }
+
+    public ServoWrapper(Servo _servo, float _speed) {
+        servo = _servo;
+        direction = IMotor.Direction.FORWARD;
+        directionCoeff = 1;
+        speed = _speed;
+        position = (float)_servo.getPosition();
     }
 }

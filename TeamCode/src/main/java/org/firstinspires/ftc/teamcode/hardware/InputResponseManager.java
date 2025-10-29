@@ -1,16 +1,20 @@
 package org.firstinspires.ftc.teamcode.hardware;
 
+import com.qualcomm.robotcore.util.ElapsedTime;
+
 import org.firstinspires.ftc.robotcore.external.Telemetry;
-import org.firstinspires.ftc.teamcode.components.RobotController;
+import org.firstinspires.ftc.teamcode.components.IRobot;
 import org.firstinspires.ftc.teamcode.components.action.ActionGroup;
 import org.firstinspires.ftc.teamcode.components.action.EmptyAction;
 import org.firstinspires.ftc.teamcode.components.action.IAction;
+import org.firstinspires.ftc.teamcode.util.TimerWrapper;
 import org.firstinspires.ftc.teamcode.util.Vec2;
 
 public  class InputResponseManager {
     GamepadWrapper gamepad;
-    RobotController robot;
+    IRobot robot;
     Telemetry telemetry;
+    TimerWrapper timer;
 
     public IAction<Vec2> leftStickAction;
     public IAction<Vec2> rightStickAction;
@@ -20,8 +24,8 @@ public  class InputResponseManager {
     public IAction<Float> leftTriggerAction, rightTriggerAction;
 
     public IAction<Object> loops;
+    public IAction<Float> timeLoops;
     public IAction<Telemetry> telemetryAction;
-
     void onLeftTrigger() {
         leftTriggerAction.loop(robot, gamepad.leftTrigger());
     }
@@ -73,14 +77,18 @@ public  class InputResponseManager {
         onRightTrigger();
         onLeftTrigger();
         loops.loop(robot, 0);
+        timeLoops.loop(robot, timer.get());
+        timer.reset();
         telemetryAction.loop(robot, telemetry);
+
     }
     
     public static class Builder {
 
         final InputResponseManager inputResponseManager;
-        public Builder(GamepadWrapper _gamepad, RobotController _robot, Telemetry _telemetry) {
+        public Builder(GamepadWrapper _gamepad, IRobot _robot, Telemetry _telemetry) {
             inputResponseManager = new InputResponseManager();
+            inputResponseManager.timer = new TimerWrapper();
             inputResponseManager.gamepad = _gamepad;
             inputResponseManager.robot = _robot;
             inputResponseManager.telemetry = _telemetry;
@@ -97,6 +105,7 @@ public  class InputResponseManager {
             inputResponseManager.leftTriggerAction = new EmptyAction<>();
             inputResponseManager.rightTriggerAction = new EmptyAction<>();
             inputResponseManager.telemetryAction = new EmptyAction<>();
+            inputResponseManager.timeLoops = new EmptyAction<>();
         }
 
         @SafeVarargs
@@ -167,12 +176,19 @@ public  class InputResponseManager {
         }
 
         @SafeVarargs
+        public final Builder timeLoops(IAction<Float>... _loops) {
+            inputResponseManager.timeLoops = new ActionGroup<>(_loops);
+            return this;
+        }
+
+        @SafeVarargs
         public final Builder telemetry(IAction<Telemetry>... _telemetry) {
             inputResponseManager.telemetryAction = new ActionGroup<>(_telemetry);
             return this;
         }
 
         public final InputResponseManager build() {
+            inputResponseManager.timer.reset();
             return inputResponseManager;
         }
     }

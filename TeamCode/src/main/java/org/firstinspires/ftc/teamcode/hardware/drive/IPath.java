@@ -2,8 +2,6 @@ package org.firstinspires.ftc.teamcode.hardware.drive;
 
 import androidx.annotation.NonNull;
 
-import org.firstinspires.ftc.teamcode.util.Vec2Rot;
-
 public interface IPath <DataType> {
     float getDuration();
     PathPoint<DataType> getPoint(float elapsed);

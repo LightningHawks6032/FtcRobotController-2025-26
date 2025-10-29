@@ -1,6 +1,6 @@
 package org.firstinspires.ftc.teamcode.components.action;
 
-import org.firstinspires.ftc.teamcode.components.RobotController;
+import org.firstinspires.ftc.teamcode.components.IRobot;
 
 import java.util.function.BiFunction;
 
@@ -29,17 +29,17 @@ public class SplitAction <Ty1, Ty2, TySplit> implements IAction<Object> {
     class LeftSetterAction implements IAction<Ty1> {
 
         @Override
-        public void init(RobotController robot, Ty1 data) {
+        public void init(IRobot robot, Ty1 data) {
             leftData = data;
         }
 
         @Override
-        public void start(RobotController robot, Ty1 data) {
+        public void start(IRobot robot, Ty1 data) {
             leftData = data;
         }
 
         @Override
-        public void loop(RobotController robot, Ty1 data) {
+        public void loop(IRobot robot, Ty1 data) {
             leftData = data;
         }
     }
@@ -47,17 +47,17 @@ public class SplitAction <Ty1, Ty2, TySplit> implements IAction<Object> {
     class RightSetterAction implements IAction<Ty2> {
 
         @Override
-        public void init(RobotController robot, Ty2 data) {
+        public void init(IRobot robot, Ty2 data) {
             rightData = data;
         }
 
         @Override
-        public void start(RobotController robot, Ty2 data) {
+        public void start(IRobot robot, Ty2 data) {
             rightData = data;
         }
 
         @Override
-        public void loop(RobotController robot, Ty2 data) {
+        public void loop(IRobot robot, Ty2 data) {
             rightData = data;
         }
     }
@@ -70,21 +70,21 @@ public class SplitAction <Ty1, Ty2, TySplit> implements IAction<Object> {
     }
 
     @Override
-    public void init(RobotController robot, Object data) {
+    public void init(IRobot robot, Object data) {
         if (leftData != null && rightData != null) {
             action.init(robot, conversionMap.apply(leftData, rightData));
         }
     }
 
     @Override
-    public void start(RobotController robot, Object data) {
+    public void start(IRobot robot, Object data) {
         if (leftData != null && rightData != null) {
             action.start(robot, conversionMap.apply(leftData, rightData));
         }
     }
 
     @Override
-    public void loop(RobotController robot, Object data) {
+    public void loop(IRobot robot, Object data) {
         if (leftData != null && rightData != null) {
             action.loop(robot, conversionMap.apply(leftData, rightData));
         }

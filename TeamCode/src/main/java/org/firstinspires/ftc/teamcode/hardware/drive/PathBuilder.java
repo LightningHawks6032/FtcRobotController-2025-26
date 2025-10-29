@@ -2,8 +2,6 @@ package org.firstinspires.ftc.teamcode.hardware.drive;
 
 import androidx.annotation.NonNull;
 
-import org.firstinspires.ftc.teamcode.util.Vec2Rot;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.function.Function;

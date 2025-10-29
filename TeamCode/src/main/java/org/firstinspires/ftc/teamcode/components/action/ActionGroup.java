@@ -1,6 +1,6 @@
 package org.firstinspires.ftc.teamcode.components.action;
 
-import org.firstinspires.ftc.teamcode.components.RobotController;
+import org.firstinspires.ftc.teamcode.components.IRobot;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -15,21 +15,21 @@ public class ActionGroup <DataType> implements IAction<DataType> {
     }
 
     @Override
-    public void init(RobotController robot, DataType data) {
+    public void init(IRobot robot, DataType data) {
         for (IAction<DataType> action : actions) {
             action.init(robot, data);
         }
     }
 
     @Override
-    public void start(RobotController robot, DataType data) {
+    public void start(IRobot robot, DataType data) {
         for (IAction<DataType> action : actions) {
             action.start(robot, data);
         }
     }
 
     @Override
-    public void loop(RobotController robot, DataType data) {
+    public void loop(IRobot robot, DataType data) {
         for (IAction<DataType> action : actions) {
             action.loop(robot, data);
         }

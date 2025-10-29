@@ -1,20 +1,20 @@
 package org.firstinspires.ftc.teamcode.components.action;
 
-import org.firstinspires.ftc.teamcode.components.RobotController;
+import org.firstinspires.ftc.teamcode.components.IRobot;
 
 public class EmptyAction<DataType> implements IAction<DataType> {
     @Override
-    public void init(RobotController robot, DataType data) {
+    public void init(IRobot robot, DataType data) {
 
     }
 
     @Override
-    public void start(RobotController robot, DataType data) {
+    public void start(IRobot robot, DataType data) {
 
     }
 
     @Override
-    public void loop(RobotController robot, DataType data) {
+    public void loop(IRobot robot, DataType data) {
 
     }
 }

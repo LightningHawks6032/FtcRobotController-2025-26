@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.opmodes.teleop.test;
 import androidx.annotation.NonNull;
 
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.IMU;
@@ -15,21 +16,22 @@ import org.firstinspires.ftc.teamcode.auto.action.ElapsedContainer;
 import org.firstinspires.ftc.teamcode.auto.action.IAutoAction;
 import org.firstinspires.ftc.teamcode.auto.action.WaitAutoAction;
 import org.firstinspires.ftc.teamcode.components.DirectDrive;
-import org.firstinspires.ftc.teamcode.components.RobotController;
+import org.firstinspires.ftc.teamcode.components.IRobot;
 import org.firstinspires.ftc.teamcode.components.action.EmptyAction;
 import org.firstinspires.ftc.teamcode.components.action.IAction;
 import org.firstinspires.ftc.teamcode.components.action.LaunchAutoSequenceAction;
 import org.firstinspires.ftc.teamcode.components.action.PredicateAction;
-import org.firstinspires.ftc.teamcode.components.action.SplitAction;
 import org.firstinspires.ftc.teamcode.control.IControlLoop;
 import org.firstinspires.ftc.teamcode.control.IControlLoopBuildOpt;
 import org.firstinspires.ftc.teamcode.hardware.GamepadWrapper;
 import org.firstinspires.ftc.teamcode.hardware.IMotor;
 import org.firstinspires.ftc.teamcode.hardware.InputResponseManager;
+import org.firstinspires.ftc.teamcode.hardware.InternalIMUWrapper;
 import org.firstinspires.ftc.teamcode.hardware.MotorSpec;
 import org.firstinspires.ftc.teamcode.hardware.drive.DriveMotors;
 import org.firstinspires.ftc.teamcode.hardware.drive.odometry.IOdometry;
 import org.firstinspires.ftc.teamcode.hardware.drive.odometry.ThreeWheelOdometry;
+import org.firstinspires.ftc.teamcode.robot.ClankerHawk2A;
 import org.firstinspires.ftc.teamcode.util.Pair;
 import org.firstinspires.ftc.teamcode.util.Vec2;
 import org.firstinspires.ftc.teamcode.util.Vec2Rot;
@@ -37,7 +39,7 @@ import org.firstinspires.ftc.teamcode.util.WithTelemetry;
 
 import java.util.function.BiFunction;
 import java.util.function.Function;
-
+@Disabled // atp ts needs to be removed
 @TeleOp(name = "Drive Motor Test", group = "Testing")
 public class DriveMotorTestOpmode extends OpMode {
     static class MotorTestAction implements IAutoAction<ElapsedContainer> {
@@ -60,27 +62,27 @@ public class DriveMotorTestOpmode extends OpMode {
         }
 
         @Override
-        public Function<Pair<Float, RobotController>, ElapsedContainer> getDataProvider() {
+        public Function<Pair<Float, IRobot>, ElapsedContainer> getDataProvider() {
             return _elapsed -> new ElapsedContainer(_elapsed.fst);
         }
 
         @Override
-        public void init(RobotController robot, ElapsedContainer data) {
+        public void init(IRobot robot, ElapsedContainer data) {
 
         }
 
         @Override
-        public void start(RobotController robot, ElapsedContainer data) {
+        public void start(IRobot robot, ElapsedContainer data) {
 
         }
 
         @Override
-        public void loop(RobotController robot, ElapsedContainer data) {
+        public void loop(IRobot robot, ElapsedContainer data) {
             motor.setPower(1f);
         }
     }
 
-    static class DriveController {
+    public static class DriveController {
         IControlLoop cx, cy, cr;
 
         public DriveController(@NonNull IControlLoopBuildOpt<? extends IControlLoop> _cx,
@@ -151,11 +153,11 @@ public class DriveMotorTestOpmode extends OpMode {
         );
     }
 
-    IMUTest imu;
+    InternalIMUWrapper imu;
 
     DriveMotors drive;
     LaunchAutoSequenceAction<ElapsedContainer> actionExecutor;
-    RobotController robot;
+    IRobot robot;
     DirectDrive directDrive;
     InputResponseManager inputResponseManager;
     IOdometry odometry;
@@ -163,14 +165,14 @@ public class DriveMotorTestOpmode extends OpMode {
     BiFunction<Vec2, Vec2, Vec2Rot> usingFieldCentric;
     @Override
     public void init() {
-        robot = new RobotController();
-        imu = new IMUTest(hardwareMap.get(IMU.class, "imu"));
+        robot = new ClankerHawk2A(hardwareMap);
+        imu = new InternalIMUWrapper(hardwareMap.get(IMU.class, "imu"));
 
         drive = DriveMotors.fromMapDcMotor(hardwareMap.dcMotor, true, MotorSpec.GOBILDA_5203_2402_0019,
                 "fl", "fr", "br", "bl"
         );
-        usingFieldCentric = (v, r) ->  new Vec2Rot(v.rotateOrigin((float) imu.imu().getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS)), r.x);
-        directDrive = new DirectDrive(drive, usingFieldCentric);
+
+        directDrive = new DirectDrive(drive, DirectDrive.fieldCentricFromIMU(imu));
 
         drive.ur().setDirection(IMotor.Direction.REVERSE);
         drive.dl().setDirection(IMotor.Direction.FORWARD);

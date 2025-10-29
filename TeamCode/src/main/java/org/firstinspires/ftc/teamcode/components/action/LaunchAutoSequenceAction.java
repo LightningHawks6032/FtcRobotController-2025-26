@@ -2,10 +2,9 @@ package org.firstinspires.ftc.teamcode.components.action;
 
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-import org.firstinspires.ftc.teamcode.auto.action.AutoActionExecutor;
 import org.firstinspires.ftc.teamcode.auto.action.AutoActionSequence;
 import org.firstinspires.ftc.teamcode.auto.action.ElapsedContainer;
-import org.firstinspires.ftc.teamcode.components.RobotController;
+import org.firstinspires.ftc.teamcode.components.IRobot;
 import org.firstinspires.ftc.teamcode.util.Pair;
 
 /// Launches an [AutoActionSequence] <br> On `true` loop, the auto sequence will start
@@ -26,18 +25,18 @@ public class LaunchAutoSequenceAction <DataType extends ElapsedContainer> implem
 
 
     @Override
-    public void init(RobotController robot, Boolean data) {
+    public void init(IRobot robot, Boolean data) {
         sequence.init(robot, sequence.getDataProvider().apply(new Pair<>((float) timer.seconds(), robot)));
     }
 
     @Override
-    public void start(RobotController robot, Boolean data) {
+    public void start(IRobot robot, Boolean data) {
         sequence.start(robot, sequence.getDataProvider().apply(new Pair<>((float) timer.seconds(), robot)));
         timer.reset();
     }
 
     @Override
-    public void loop(RobotController robot, Boolean data) {
+    public void loop(IRobot robot, Boolean data) {
         if (!running && data) {
             running = true;
             timer.reset();
