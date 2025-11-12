@@ -12,6 +12,7 @@ import org.firstinspires.ftc.teamcode.util.Vec2Rot;
 import org.jetbrains.annotations.Contract;
 
 import java.util.function.BiFunction;
+import java.util.function.Function;
 
 /// Applies powers directly to the drive.<br>
 /// `directDriveAction` - The direct drive action<br>
@@ -71,7 +72,13 @@ public class DirectDrive {
 
     @NonNull
     @Contract(pure = true)
-    public static BiFunction<Vec2, Vec2, Vec2Rot> fieldCentricFromIMU(IIMU _imu) {
-        return (v, r) ->  new Vec2Rot(v.rotateOrigin((float) _imu.getAngles().getYaw(AngleUnit.RADIANS)), r.x);
+    public static BiFunction<Vec2, Vec2, Vec2Rot> fieldCentricFromIMUGamepad(IIMU _imu) {
+        return ((BiFunction<Vec2,Vec2,Vec2Rot>)(v1, v2) -> new Vec2Rot(v1.x, v1.y, v2.x)).andThen(fieldCentricFromIMU(_imu));
+    }
+
+    @NonNull
+    @Contract(pure = true)
+    public static Function<Vec2Rot, Vec2Rot> fieldCentricFromIMU(IIMU _imu) {
+        return (v) -> new Vec2Rot(v.asVec2().rotateOrigin((float) _imu.getAngles().getYaw(AngleUnit.RADIANS)), v.r);
     }
 }

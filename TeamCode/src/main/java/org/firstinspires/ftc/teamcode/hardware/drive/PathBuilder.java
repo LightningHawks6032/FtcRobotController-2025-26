@@ -54,6 +54,7 @@ public class PathBuilder <DataType> implements IPath<DataType> {
         return duration;
     }
 
+    /// This is a stupid function and a stupid way to do things...
     @Override
     public PathPoint<DataType> getPoint(float elapsed) {
         if (path.isEmpty() || elapsed <= 0) {

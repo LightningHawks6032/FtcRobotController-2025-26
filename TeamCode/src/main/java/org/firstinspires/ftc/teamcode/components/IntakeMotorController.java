@@ -7,6 +7,10 @@ import org.firstinspires.ftc.teamcode.hardware.IServo;
 import org.firstinspires.ftc.teamcode.util.Toggle;
 import org.firstinspires.ftc.teamcode.util.WithTelemetry;
 
+
+/// `setPowerAction` - Sets the internal motor power<br>
+/// `setLockAction` - Locks the internal motor power<br>
+/// `setMotorPowerAction` - Sets the physical motor power
 public class IntakeMotorController implements WithTelemetry.IWithTelemetry {
     IMotor motor;
     float power;

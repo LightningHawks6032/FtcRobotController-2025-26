@@ -11,7 +11,6 @@ import org.firstinspires.ftc.teamcode.components.IRobot;
 import org.firstinspires.ftc.teamcode.components.IntakeMotorController;
 import org.firstinspires.ftc.teamcode.components.action.EmptyAction;
 import org.firstinspires.ftc.teamcode.components.action.IAction;
-import org.firstinspires.ftc.teamcode.components.action.MapAction;
 import org.firstinspires.ftc.teamcode.components.action.PredicateAction;
 import org.firstinspires.ftc.teamcode.control.PIDF;
 import org.firstinspires.ftc.teamcode.hardware.DcMotorWrapper;
@@ -26,7 +25,6 @@ import org.firstinspires.ftc.teamcode.hardware.drive.odometry.ThreeWheelOdometry
 import org.firstinspires.ftc.teamcode.opmodes.teleop.test.DriveMotorTestOpmode;
 import org.firstinspires.ftc.teamcode.util.Util;
 import org.firstinspires.ftc.teamcode.util.Vec2;
-import org.firstinspires.ftc.teamcode.util.Vec2Rot;
 
 /// Test drivetrain
 public class ClankerHawk2A implements IRobot {
@@ -57,7 +55,7 @@ public class ClankerHawk2A implements IRobot {
     es[3]
     es[4]
  */
-    final DriveMotors driveMotors;
+    public final DriveMotors driveMotors;
     final IOdometry odometry;
     final IIMU imu;
     final DriveMotorTestOpmode.DriveController driveController;
@@ -112,24 +110,24 @@ public class ClankerHawk2A implements IRobot {
         odometry = new ThreeWheelOdometry(
                 new ThreeWheelOdometry.WheelSpec(
                         2000,
-                        1.6f,
-                        new Vec2(0, -1.6f),
-                        new Vec2(0, 1.6f),
-                        new Vec2(0.6f, 0)
+                        2.4f,
+                        new Vec2(0, -20.5f), //1.6
+                        new Vec2(0, 20.5f),
+                        new Vec2(7.5f, 0) //0.6
                 ),
-                ThreeWheelOdometry.Wheels.fromMap(hardwareMap.dcMotor, "fr", "bl", "br")
+                ThreeWheelOdometry.Wheels.fromMap(hardwareMap.dcMotor, "fr", "fl", "bl")
                         .reversalMap(
                                 new ThreeWheelOdometry.WheelReversalPattern(
                                         true,
                                         false,
-                                        false
+                                        true
                                 )
                         )
         );
 
         imu = new InternalIMUWrapper(hardwareMap.get(IMU.class, "imu"));
 
-        directDrive = new DirectDrive(driveMotors, DirectDrive.fieldCentricFromIMU(imu));
+        directDrive = new DirectDrive(driveMotors, DirectDrive.fieldCentricFromIMUGamepad(imu));
 
         flywheelController = new FlywheelController(
                 Util.also(

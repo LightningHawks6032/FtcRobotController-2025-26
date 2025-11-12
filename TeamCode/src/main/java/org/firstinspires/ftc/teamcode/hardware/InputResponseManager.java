@@ -9,6 +9,13 @@ import org.firstinspires.ftc.teamcode.components.action.EmptyAction;
 import org.firstinspires.ftc.teamcode.components.action.IAction;
 import org.firstinspires.ftc.teamcode.util.TimerWrapper;
 import org.firstinspires.ftc.teamcode.util.Vec2;
+import org.firstinspires.ftc.teamcode.util.WithTelemetry;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public  class InputResponseManager {
     GamepadWrapper gamepad;
@@ -184,6 +191,18 @@ public  class InputResponseManager {
         @SafeVarargs
         public final Builder telemetry(IAction<Telemetry>... _telemetry) {
             inputResponseManager.telemetryAction = new ActionGroup<>(_telemetry);
+            return this;
+        }
+
+        public final Builder telemetry(WithTelemetry.IWithTelemetry... _telemetry) {
+
+            inputResponseManager.telemetryAction = new ActionGroup<>(
+                    new ArrayList<>(Stream
+                                    .of(_telemetry)
+                                    .map(WithTelemetry.IWithTelemetry::getTelemetryAction)
+                                    .collect(Collectors.toList())
+                    )
+            );
             return this;
         }
 

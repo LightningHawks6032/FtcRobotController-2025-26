@@ -39,7 +39,7 @@ import org.firstinspires.ftc.teamcode.util.WithTelemetry;
 
 import java.util.function.BiFunction;
 import java.util.function.Function;
-@Disabled // atp ts needs to be removed
+//@Disabled // atp ts needs to be removed
 @TeleOp(name = "Drive Motor Test", group = "Testing")
 public class DriveMotorTestOpmode extends OpMode {
     static class MotorTestAction implements IAutoAction<ElapsedContainer> {
@@ -132,6 +132,7 @@ public class DriveMotorTestOpmode extends OpMode {
             telem.addData("Yaw", angles.getYaw(AngleUnit.DEGREES));
             telem.addData("Pitch", angles.getPitch(AngleUnit.DEGREES));
             telem.addData("Roll", angles.getRoll(AngleUnit.DEGREES));
+            //testicl
         });
 
         public IAction<Telemetry> getTelemetryAction() {
@@ -172,7 +173,7 @@ public class DriveMotorTestOpmode extends OpMode {
                 "fl", "fr", "br", "bl"
         );
 
-        directDrive = new DirectDrive(drive, DirectDrive.fieldCentricFromIMU(imu));
+        directDrive = new DirectDrive(drive);
 
         drive.ur().setDirection(IMotor.Direction.REVERSE);
         drive.dl().setDirection(IMotor.Direction.FORWARD);

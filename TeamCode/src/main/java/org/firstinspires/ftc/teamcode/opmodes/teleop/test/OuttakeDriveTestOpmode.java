@@ -49,10 +49,11 @@ public class OuttakeDriveTestOpmode extends OpMode {
                             robot.resetHeadingAction
                         )
                         .telemetry(
-                                robot.getOdometry().getTelemetryAction(),
-                                robot.getDrive().getTelemetryAction(),
-                                robot.flywheelController.getTelemetryAction(),
-                                robot.getIMU().getTelemetryAction()
+                                robot.getOdometry(),
+                                robot.getDrive(),
+                                robot.flywheelController,
+                                robot.getIMU(),
+                                robot.intakeController
                         )
                         .DPadAction(
                                 AxisSplitterAction.TwoWay(

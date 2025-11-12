@@ -14,6 +14,10 @@ public class ActionGroup <DataType> implements IAction<DataType> {
         actions = new ArrayList<>(Arrays.asList(_actions));
     }
 
+    public ActionGroup(ArrayList<IAction<DataType>> _actions) {
+        actions = _actions;
+    }
+
     @Override
     public void init(IRobot robot, DataType data) {
         for (IAction<DataType> action : actions) {
