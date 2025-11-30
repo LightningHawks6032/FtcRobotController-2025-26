@@ -7,7 +7,7 @@ import org.firstinspires.ftc.teamcode.components.action.AxisSplitterAction;
 import org.firstinspires.ftc.teamcode.components.action.EmptyAction;
 import org.firstinspires.ftc.teamcode.hardware.GamepadWrapper;
 import org.firstinspires.ftc.teamcode.opmodes.TeleOpmode;
-import org.firstinspires.ftc.teamcode.robot.ClankerHawk2A;
+import org.firstinspires.ftc.teamcode.robot.ClankerHawk2A.ClankerHawk2A;
 
 @TeleOp(name = "Outtake Drive Test", group = "Testing")
 public class OuttakeDriveTestOpmode extends OpMode {

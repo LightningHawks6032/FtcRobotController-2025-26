@@ -25,6 +25,9 @@ public class WebcamTest extends OpMode {
         aprilTag.setDecimation(2);
         visionPortal = new VisionPortal.Builder()
                 .setCamera(hardwareMap.get(WebcamName.class, "Webcam 1"))
+                .setStreamFormat(
+                        VisionPortal.StreamFormat.MJPEG
+                )
                 .addProcessor(aprilTag)
                 .build();
 
@@ -43,7 +46,7 @@ public class WebcamTest extends OpMode {
         if (currentDetections.isEmpty()) {
             telemetry.addLine("No apriltag found");
         }
-
+//i coded
         for (AprilTagDetection detection : currentDetections) {
             // Look to see if we have size info on this tag.
             if (true || detection.metadata != null) {

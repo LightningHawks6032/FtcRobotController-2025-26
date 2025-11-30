@@ -5,46 +5,62 @@ import androidx.annotation.NonNull;
 public class CompoundControlLoop {
     public static class Controller implements IControlLoop {
 
-        IControlLoop controlHi, controlLo;
-        float threshold;
+        private final IControlLoop farControl;
+        private final IControlLoop nearControl;
 
+        private final float enterFar;
+        private final float exitFar;
+
+        private boolean usingFar = true;
 
         @Override
         public float loop(float cx, float tx, float dt) {
-            float error = tx - cx;
-            if (error > threshold) {
-                return controlHi.loop(cx, tx, dt);
+            float error = Math.abs(tx - cx);
+
+            if (usingFar) {
+                if (error < exitFar)
+                    usingFar = false;
+            } else {
+                if (error > enterFar)
+                    usingFar = true;
             }
-            return controlLo.loop(cx, tx, dt);
+
+            return usingFar
+                    ? farControl.loop(cx, tx, dt)
+                    : nearControl.loop(cx, tx, dt);
         }
 
-        public Controller(IControlLoop _hi, IControlLoop _lo, float _threshold) {
-            controlHi = _hi;
-            controlLo = _lo;
-            threshold = _threshold;
+        public Controller(IControlLoop _far, IControlLoop _near, float _enterFar, float _exitFar) {
+
+            assert (_exitFar < _enterFar);
+
+            farControl = _far;
+            nearControl = _near;
+            enterFar = _enterFar;
+            exitFar = _exitFar;
         }
 
-        public Controller(@NonNull IControlLoopBuildOpt<? extends IControlLoop> _hi, @NonNull IControlLoopBuildOpt<? extends IControlLoop> _lo, float _threshold) {
-            controlHi = _hi.build();
-            controlLo = _lo.build();
-            threshold = _threshold;
+        public Controller(@NonNull IControlLoopBuildOpt<? extends IControlLoop> _far, @NonNull IControlLoopBuildOpt<? extends IControlLoop> _near, float _enterFar, float _exitFar) {
+            this(_far.build(), _near.build(), _enterFar, _exitFar);
         }
     }
 
     public static class BuildOpt implements IControlLoopBuildOpt<Controller> {
         IControlLoopBuildOpt<? extends IControlLoop> hi, lo;
-        float thresh;
+        float enterFar, exitFar;
 
-        public BuildOpt(IControlLoopBuildOpt<? extends IControlLoop> _hi, IControlLoopBuildOpt<? extends IControlLoop> _lo, float _threshold) {
+        public BuildOpt(IControlLoopBuildOpt<? extends IControlLoop> _hi, IControlLoopBuildOpt<? extends IControlLoop> _lo, float _enterFar, float _exitFar) {
             hi = _hi;
             lo = _lo;
-            thresh = _threshold;
+            enterFar = _enterFar;
+            exitFar = _exitFar;
         }
 
         @Override
         public Controller build() {
-            return new Controller(hi, lo, thresh);
+            return new Controller(hi, lo, enterFar, exitFar);
         }
     }
 
 }
+

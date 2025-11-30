@@ -45,7 +45,7 @@ public class OuttakeMotorTestOpmode extends OpMode {
         motor1.setPower(motor_power);
         motor2.setPower(-motor_power);
 
-        telemetry.addData("Motor 1 speed (rpm)", motor1.ticksPerSecondToRPM(motor1.encoder.getVelocity()));
+        telemetry.addData("Motor 1 speed (rpm)", motor1.getVelocityRPM());
         telemetry.addData("Motor 1 vel computer (ticks/s)", motor1.getVelocity());
         telemetry.addData("pow", motor1.getPower());
         telemetry.addData("Motor 1 vel measured (ticks/s)", motor1.encoder.getVelocity());

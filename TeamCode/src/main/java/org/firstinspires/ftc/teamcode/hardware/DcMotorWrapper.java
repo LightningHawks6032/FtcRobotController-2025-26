@@ -73,9 +73,11 @@ public class DcMotorWrapper implements IMotor {
     public DcMotorWrapper(DcMotor _motor, boolean _usingEncoder, MotorSpec _spec) {
         motor = (DcMotorEx)_motor;
         motor.setDirection(DcMotorSimple.Direction.FORWARD);
+        motor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE); //TODO: Fix this lmao
         spec = _spec == null ? MotorSpec.GOBILDA_5000_0002_0001 : _spec;
         usingEncoder = _usingEncoder;
         encoder = new Encoder();
+
 
     }
     public void setDirection(IMotor.Direction dir) {
@@ -116,11 +118,18 @@ public class DcMotorWrapper implements IMotor {
     // Returns Ticks per Second
     @Override
     public float getVelocity() {
+        if (usingEncoder) {
+            return encoder.getVelocity();
+        }
         return getPower() * spec.noLoadSpeed * spec.encoderResolution / 60;
     }
 
-    public float ticksPerSecondToRPM(float ticksPerSecond) {
-        return ticksPerSecond * 60 / (spec.encoderResolution * spec.gearRatio);
+    public float getVelocityRPM() {
+        return spec.ticksPerSecondToRPM(getVelocity());
+    }
+
+    public MotorSpec getSpec() {
+        return spec;
     }
 
 

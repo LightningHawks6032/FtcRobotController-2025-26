@@ -25,6 +25,11 @@
             return new Vec2Rot(x + v.x, y + v.y, r + v.r);
         }
 
+        public Vec2Rot componentwiseAdd(Vec2 v) {
+            return new Vec2Rot(x + v.x, y + v.y, r);
+        }
+
+
         public Vec2Rot componentwiseSub(Vec2Rot v) {
             return new Vec2Rot(x - v.x, y - v.y, r - v.r);
         }

@@ -11,6 +11,14 @@ public class MotorSpec {
         encoderResolution = _encoderResolution_PPR;
         gearRatio = _gearRatio;
     }
+    public float ticksPerSecondToRPM(float ticksPerSecond) {
+        return ticksPerSecond * 60 / (encoderResolution * gearRatio);
+    }
+
+    public float proportionOfNoLoad(float speed_RPM) {
+        return speed_RPM / noLoadSpeed;
+    }
+
 // diddy mangos 67 masonnnnn
     // where did this come from :skull:
     public static final MotorSpec GOBILDA_5000_0002_0001 = new MotorSpec(6000, 1.47f, 28/*145.6f*/, 1);

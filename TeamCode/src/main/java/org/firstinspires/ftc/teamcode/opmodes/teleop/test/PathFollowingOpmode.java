@@ -10,7 +10,7 @@ import org.firstinspires.ftc.teamcode.hardware.drive.BezierPath;
 import org.firstinspires.ftc.teamcode.hardware.drive.IPath;
 import org.firstinspires.ftc.teamcode.hardware.drive.PathPoint;
 import org.firstinspires.ftc.teamcode.opmodes.TeleOpmode;
-import org.firstinspires.ftc.teamcode.robot.ClankerHawk2A;
+import org.firstinspires.ftc.teamcode.robot.ClankerHawk2A.ClankerHawk2A;
 import org.firstinspires.ftc.teamcode.util.TimerWrapper;
 import org.firstinspires.ftc.teamcode.util.Vec2;
 import org.firstinspires.ftc.teamcode.util.Vec2Rot;

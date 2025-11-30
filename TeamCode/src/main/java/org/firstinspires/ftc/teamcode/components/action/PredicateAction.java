@@ -11,11 +11,6 @@ public class PredicateAction <Ty> implements IAction<Ty> {
     BiFunction<IRobot, Ty, Boolean> pred;
 
 
-//    public PredicateAction(IAction<Ty> _onTrue) {
-//        onTrue = _onTrue;
-//        onFalse = new EmptyAction<>();
-//    }
-
     public PredicateAction(IAction<Ty> _onTrue, IAction<Ty> _onFalse, BiFunction<IRobot, Ty, Boolean> _pred) {
         onTrue = _onTrue;
         onFalse = _onFalse;

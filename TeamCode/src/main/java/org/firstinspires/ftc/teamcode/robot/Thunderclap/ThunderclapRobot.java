@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.robot;
+package org.firstinspires.ftc.teamcode.robot.Thunderclap;
 
 import androidx.annotation.NonNull;
 
@@ -8,7 +8,6 @@ import com.qualcomm.robotcore.hardware.IMU;
 import org.firstinspires.ftc.teamcode.components.DirectDrive;
 import org.firstinspires.ftc.teamcode.components.FlywheelController;
 import org.firstinspires.ftc.teamcode.components.IRobot;
-import org.firstinspires.ftc.teamcode.components.IntakeMotorController;
 import org.firstinspires.ftc.teamcode.components.action.EmptyAction;
 import org.firstinspires.ftc.teamcode.components.action.IAction;
 import org.firstinspires.ftc.teamcode.components.action.PredicateAction;
@@ -21,49 +20,28 @@ import org.firstinspires.ftc.teamcode.hardware.ServoWrapper;
 import org.firstinspires.ftc.teamcode.hardware.drive.DriveMotors;
 import org.firstinspires.ftc.teamcode.hardware.drive.IIMU;
 import org.firstinspires.ftc.teamcode.hardware.drive.odometry.IOdometry;
-import org.firstinspires.ftc.teamcode.hardware.drive.odometry.ThreeWheelOdometry;
-import org.firstinspires.ftc.teamcode.opmodes.teleop.test.DriveMotorTestOpmode;
+import org.firstinspires.ftc.teamcode.hardware.drive.odometry.TwoWheelOdometry;
 import org.firstinspires.ftc.teamcode.util.Util;
 import org.firstinspires.ftc.teamcode.util.Vec2;
 
-/// Test drivetrain
-public class ClankerHawk2A implements IRobot {
-    /*
-    --- Robot Mapping ---
-    c - control hub, e - expansion hub
-    m - motor port, s - servo port
+public class ThunderclapRobot implements IRobot {
 
-    cm[0]
-    cm[1] - intake
-    cm[2]
-    cm[3]
-
-    cs[0]
-    cs[1]
-    cs[2]
-    cs[3]
-    cs[4]
-
-    em[0]
-    em[1]
-    em[2]
-    em[3]
-
-    es[0]
-    es[1]
-    es[2]
-    es[3]
-    es[4]
- */
-    public final DriveMotors driveMotors;
     final IOdometry odometry;
     final IIMU imu;
-    final DriveMotorTestOpmode.DriveController driveController;
-    public final DirectDrive directDrive;
-    public final FlywheelController flywheelController;
-    public final IntakeMotorController intakeController;
-    public final IAction<Boolean> resetHeadingAction;
+    public final DriveMotors driveMotors;
 
+    public final DirectDrive directDrive;
+    public final OuttakeWheelController outtakeController;
+
+    public final IntakeWheelController intakeController;
+
+    public final TransferWheelController transferController;
+
+    public final HoodController hoodController;
+
+    public final InternalCameraWrapper camera;
+
+    public final IAction<Boolean> resetHeadingAction;
 
     @Override
     public DriveMotors getDrive() {
@@ -80,12 +58,15 @@ public class ClankerHawk2A implements IRobot {
         return imu;
     }
 
-    public ClankerHawk2A(@NonNull HardwareMap hardwareMap) {
+    public ThunderclapRobot(@NonNull HardwareMap hardwareMap) {
+        imu = new InternalIMUWrapper(hardwareMap.get(IMU.class, "imu"));
+
         driveMotors = DriveMotors.fromMapDcMotor(hardwareMap.dcMotor,
                 false,
                 MotorSpec.GOBILDA_5203_2402_0019,
                 "fl", "fr", "br", "bl"
         );
+
         driveMotors.ur().setDirection(IMotor.Direction.REVERSE);
         driveMotors.dl().setDirection(IMotor.Direction.FORWARD);
         driveMotors.dr().setDirection(IMotor.Direction.REVERSE);
@@ -98,47 +79,53 @@ public class ClankerHawk2A implements IRobot {
                 false
         ));
 
-        driveController = new DriveMotorTestOpmode.DriveController(
-                new PIDF.BuildOpt(
-                        new PIDF.Weights(0.0035f, 0f, 0.1f, 1, 0.3f, 0.1f)
-                ),
-                new PIDF.BuildOpt(
-                        new PIDF.Weights(0.0035f, 0f, 0.1f, 1, 0.3f, 0.1f)
-                )
-        );
-
-        odometry = new ThreeWheelOdometry(
-                new ThreeWheelOdometry.WheelSpec(
+        odometry = new TwoWheelOdometry(
+                new TwoWheelOdometry.WheelSpec(
                         2000,
                         2.4f,
-                        new Vec2(0, -20.5f), //1.6
-                        new Vec2(0, 20.5f),
-                        new Vec2(7.5f, 0) //0.6
+                        new Vec2(0, -9), //1.6
+                        //new Vec2(0, -9),
+                        new Vec2(-1f, 18) //0.6
                 ),
-                ThreeWheelOdometry.Wheels.fromMap(hardwareMap.dcMotor, "fr", "fl", "bl")
+                TwoWheelOdometry.Wheels.fromMap(hardwareMap.dcMotor, "fl", "fr")
                         .reversalMap(
-                                new ThreeWheelOdometry.WheelReversalPattern(
+                                new TwoWheelOdometry.WheelReversalPattern(
                                         true,
-                                        false,
                                         true
                                 )
-                        )
+                        ),
+                getIMU()
         );
-
-        imu = new InternalIMUWrapper(hardwareMap.get(IMU.class, "imu"));
 
         directDrive = new DirectDrive(driveMotors, DirectDrive.fieldCentricFromIMUGamepad(imu));
+        directDrive.setDrivePowerFactor(0.8f);
 
-        flywheelController = new FlywheelController(
-                Util.also(
-                        new DcMotorWrapper(hardwareMap.dcMotor.get("flywheel"), true, MotorSpec.GOBILDA_5000_0002_0001),
-                        f -> f.setDirection(IMotor.Direction.REVERSE)
-                ),
-                new ServoWrapper(hardwareMap.servo.get("hood"))
+        camera = new InternalCameraWrapper(hardwareMap);
+
+        outtakeController = new OuttakeWheelController(
+                Util.also(new DcMotorWrapper(hardwareMap.dcMotor.get("outtake flywheel"), true, MotorSpec.GOBILDA_5000_0002_0001),
+                        m->m.setDirection(IMotor.Direction.REVERSE)),
+                    new PIDF.Controller(new PIDF.Weights(
+                            0.9f,
+                            0.7f,0.25f,
+                            1f,
+                            0.1f,1
+                    )),
+                () -> camera.lastReading
+                );
+
+        hoodController = new HoodController(
+                new ServoWrapper(hardwareMap.servo.get("hood")),
+                0.4f, 0.8f
         );
 
-        intakeController = new IntakeMotorController(
-                new DcMotorWrapper(hardwareMap.dcMotor.get("intake"), true, MotorSpec.GOBILDA_5203_2402_0003)
+        intakeController = new IntakeWheelController(
+                new DcMotorWrapper(hardwareMap.dcMotor.get("intake flywheel"), false, MotorSpec.GOBILDA_5203_2402_0019)
+        );
+
+        transferController = new TransferWheelController(
+                new ServoWrapper(hardwareMap.servo.get("transfer flywheel")),
+                intakeController::trySyncTransferLift
         );
 
         resetHeadingAction = new PredicateAction<>(
@@ -146,6 +133,5 @@ public class ClankerHawk2A implements IRobot {
                 new EmptyAction<>(),
                 (r, b) -> b
         );
-
     }
 }

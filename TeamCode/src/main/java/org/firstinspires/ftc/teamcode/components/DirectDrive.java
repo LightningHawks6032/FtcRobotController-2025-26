@@ -12,6 +12,7 @@ import org.firstinspires.ftc.teamcode.util.Vec2Rot;
 import org.jetbrains.annotations.Contract;
 
 import java.util.function.BiFunction;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 /// Applies powers directly to the drive.<br>
@@ -20,11 +21,22 @@ import java.util.function.Function;
 public class DirectDrive {
     final DirectDriveAction directDriveAction;
     final SplitAction<Vec2, Vec2, Vec2Rot> splitAction;
+    final SpeedModeAction speedModeAction;
     public IAction<Vec2Rot> directDriveAction() {return directDriveAction;}
     public SplitAction<Vec2, Vec2, Vec2Rot> splitAction() {return splitAction;}
+    public IAction<Boolean> fastModeAction() {return speedModeAction.fastModeAction;}
+    public IAction<Boolean> slowModeAction() {return speedModeAction.slowModeAction;}
+    public void setDrivePowerFactor(float newFactor) {
+        directDriveAction.drivePowerFactor = newFactor;
+    }
+
+    float getDrivePowerFactor() {
+        return directDriveAction.drivePowerFactor;
+    }
 
     static class DirectDriveAction implements IAction<Vec2Rot> {
         DriveMotors drive;
+        float drivePowerFactor = 1f;
         public DirectDriveAction(DriveMotors _drive) {
             drive = _drive;
         }
@@ -47,7 +59,7 @@ public class DirectDrive {
         @Override
         public void loop(IRobot robot, Vec2Rot data) {
 
-            Vec2Rot pow = normalize(data);
+            Vec2Rot pow = normalize(data).componentwiseScl(drivePowerFactor);
 
             drive.setPower(
                     (pow.y - pow.x - pow.r),
@@ -62,12 +74,17 @@ public class DirectDrive {
         directDriveAction = new DirectDriveAction(_drive);
 
         splitAction = new SplitAction<>(directDriveAction, (v1, r) -> new Vec2Rot(v1, r.x));
+
+        speedModeAction = new SpeedModeAction(this::setDrivePowerFactor);
+
     }
 
     public DirectDrive(DriveMotors _drive, BiFunction<Vec2, Vec2, Vec2Rot> conversionMap) {
         directDriveAction = new DirectDriveAction(_drive);
 
         splitAction = new SplitAction<>(directDriveAction, conversionMap);
+
+        speedModeAction = new SpeedModeAction(this::setDrivePowerFactor);
     }
 
     @NonNull
@@ -75,10 +92,61 @@ public class DirectDrive {
     public static BiFunction<Vec2, Vec2, Vec2Rot> fieldCentricFromIMUGamepad(IIMU _imu) {
         return ((BiFunction<Vec2,Vec2,Vec2Rot>)(v1, v2) -> new Vec2Rot(v1.x, v1.y, v2.x)).andThen(fieldCentricFromIMU(_imu));
     }
-
     @NonNull
     @Contract(pure = true)
     public static Function<Vec2Rot, Vec2Rot> fieldCentricFromIMU(IIMU _imu) {
         return (v) -> new Vec2Rot(v.asVec2().rotateOrigin((float) _imu.getAngles().getYaw(AngleUnit.RADIANS)), v.r);
+    }
+
+
+    static class SpeedModeAction {
+        enum SPEED {
+            NORMAL(0.8f), SLOW(0.3f), FAST(1f);
+
+            public float speed;
+
+            SPEED(float _speed) {
+                speed = _speed;
+            }
+        }
+
+
+        Consumer<Float> updateSpeed;
+        SPEED state;
+
+        IAction<Boolean> fastModeAction, slowModeAction;
+
+        public void setSpeeds(float slow, float normal, float fast) {
+            SPEED.NORMAL.speed = normal;
+            SPEED.FAST.speed = fast;
+            SPEED.SLOW.speed = slow;
+        }
+        void updateState(SPEED _speed) {
+            if (_speed == state) {return;}
+            state = _speed;
+            updateSpeed.accept(state.speed);
+        }
+
+        public SpeedModeAction(Consumer<Float> _updateSpeed) {
+            state = SPEED.NORMAL;
+            updateSpeed = _updateSpeed;
+
+            fastModeAction = IAction.From.loop((r, b) -> {
+                if (b && state == SPEED.NORMAL) {
+                    updateState(SPEED.FAST);
+                }
+                else if (!b && state==SPEED.FAST) {
+                    updateState(SPEED.NORMAL);
+                }
+            });
+
+            slowModeAction = IAction.From.loop((r, b) -> {
+                if (b && state == SPEED.NORMAL) {
+                    updateState(SPEED.SLOW);
+                }
+                else if (!b && state==SPEED.SLOW) {
+                    updateState(SPEED.NORMAL);
+                }            });
+        }
     }
 }

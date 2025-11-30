@@ -46,4 +46,6 @@ public class Vec2 {
     public String toString() {
         return "(" + x + ", " + y + ")";
     }
+
+    public static Vec2 zero() {return new Vec2(0, 0);}
 }
