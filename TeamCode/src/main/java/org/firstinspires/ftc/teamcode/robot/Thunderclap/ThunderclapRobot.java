@@ -5,8 +5,8 @@ import androidx.annotation.NonNull;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.IMU;
 
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.teamcode.components.DirectDrive;
-import org.firstinspires.ftc.teamcode.components.FlywheelController;
 import org.firstinspires.ftc.teamcode.components.IRobot;
 import org.firstinspires.ftc.teamcode.components.action.EmptyAction;
 import org.firstinspires.ftc.teamcode.components.action.IAction;
@@ -23,6 +23,7 @@ import org.firstinspires.ftc.teamcode.hardware.drive.odometry.IOdometry;
 import org.firstinspires.ftc.teamcode.hardware.drive.odometry.TwoWheelOdometry;
 import org.firstinspires.ftc.teamcode.util.Util;
 import org.firstinspires.ftc.teamcode.util.Vec2;
+import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
 
 public class ThunderclapRobot implements IRobot {
 
@@ -31,6 +32,7 @@ public class ThunderclapRobot implements IRobot {
     public final DriveMotors driveMotors;
 
     public final DirectDrive directDrive;
+    public final StateMachineDrive stateMachineDrive;
     public final OuttakeWheelController outtakeController;
 
     public final IntakeWheelController intakeController;
@@ -100,12 +102,21 @@ public class ThunderclapRobot implements IRobot {
         directDrive = new DirectDrive(driveMotors, DirectDrive.fieldCentricFromIMUGamepad(imu));
         directDrive.setDrivePowerFactor(0.8f);
 
+
         camera = new InternalCameraWrapper(hardwareMap);
+        stateMachineDrive = new StateMachineDrive(directDrive, new PIDF.BuildOpt(new PIDF.Weights(
+                0.8f, 0f,0.05f,0,0,1
+        )), () -> {
+            float fallback = 0f;
+            AprilTagDetection last = camera.lastReading;
+            if (last == null) {return fallback;}
+            return (float)last.robotPose.getOrientation().getYaw(AngleUnit.RADIANS);
+        }, () -> (float)imu.getAngles().getYaw(AngleUnit.RADIANS));
 
         outtakeController = new OuttakeWheelController(
                 Util.also(new DcMotorWrapper(hardwareMap.dcMotor.get("outtake flywheel"), true, MotorSpec.GOBILDA_5000_0002_0001),
                         m->m.setDirection(IMotor.Direction.REVERSE)),
-                    new PIDF.Controller(new PIDF.Weights(
+                    new PIDF.BuildOpt(new PIDF.Weights(
                             0.9f,
                             0.7f,0.25f,
                             1f,
@@ -116,7 +127,14 @@ public class ThunderclapRobot implements IRobot {
 
         hoodController = new HoodController(
                 new ServoWrapper(hardwareMap.servo.get("hood")),
-                0.4f, 0.8f
+                0.4f, 0.8f,
+                () -> {
+                    AprilTagDetection last = camera.lastReading;
+                    if (last == null) {
+                        return 100f;
+                    }
+                    return (float)last.ftcPose.range;
+                }
         );
 
         intakeController = new IntakeWheelController(

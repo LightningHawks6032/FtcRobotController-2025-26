@@ -43,6 +43,12 @@ public class CompoundControlLoop {
         public Controller(@NonNull IControlLoopBuildOpt<? extends IControlLoop> _far, @NonNull IControlLoopBuildOpt<? extends IControlLoop> _near, float _enterFar, float _exitFar) {
             this(_far.build(), _near.build(), _enterFar, _exitFar);
         }
+
+        @Override
+        public void reset() {
+            farControl.reset();
+            nearControl.reset();
+        }
     }
 
     public static class BuildOpt implements IControlLoopBuildOpt<Controller> {

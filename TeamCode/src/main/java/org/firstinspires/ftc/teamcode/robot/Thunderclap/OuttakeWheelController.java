@@ -1,11 +1,13 @@
 package org.firstinspires.ftc.teamcode.robot.Thunderclap;
 
+import androidx.annotation.NonNull;
+
 import org.firstinspires.ftc.robotcore.external.Telemetry;
-import org.firstinspires.ftc.teamcode.components.action.ActionGroup;
 import org.firstinspires.ftc.teamcode.components.action.ActionStateMachine;
 import org.firstinspires.ftc.teamcode.components.action.IAction;
 import org.firstinspires.ftc.teamcode.control.DirectControlLoop;
 import org.firstinspires.ftc.teamcode.control.IControlLoop;
+import org.firstinspires.ftc.teamcode.control.IControlLoopBuildOpt;
 import org.firstinspires.ftc.teamcode.hardware.DcMotorWrapper;
 import org.firstinspires.ftc.teamcode.util.LazyInit;
 import org.firstinspires.ftc.teamcode.util.Toggle;
@@ -48,12 +50,12 @@ public class OuttakeWheelController implements WithTelemetry.IWithTelemetry {
     static class DistanceSpeedComputer {
         Supplier<AprilTagDetection> lastReading;
 
-        final float coefficient = 0.00344f;
-        final float offset = 0.299f;
+        final float coefficient = 0.00277063f;
+        final float offset = 0.463895f;
         final float fallback = 0.67f;
 
         float getPower(float distance) {
-            return offset + coefficient * distance;
+            return offset + coefficient * (distance + 9);
         }
 
         public float getDesiredPower() {
@@ -75,27 +77,44 @@ public class OuttakeWheelController implements WithTelemetry.IWithTelemetry {
         /// Adjust by distance measured from camera
         DISTANCE
     }
-    class StateMachineControl {
+    class StateMachineControl implements WithTelemetry.IWithTelemetry {
 
         final ActionStateMachine<StateMachineControlState, Object> stateMachine;
         final Toggle controlSpeedToggle, isIdleToggle;
         final DistanceSpeedComputer speedComputer;
 
+        final IControlLoop distanceControlLoop;
+        public final IAction<Float> controlLoopAction;
+        float desiredPower, controlLoopOutput;
+
         public final IAction<Boolean> controlSpeedToggleAction, idleToggleAction;
         public final IAction<Object> stateMachineAction;
 
+
         final float IDLE_SPIN_POWER = -0.3f;
 
-        public StateMachineControl(DistanceSpeedComputer _speedComputer) {
+        public StateMachineControl(DistanceSpeedComputer _speedComputer, IControlLoop _controlLoop) {
             speedComputer = _speedComputer;
+            distanceControlLoop = _controlLoop;
+            desiredPower = 0f;
+            controlLoopOutput = 0f;
 
-            IAction<Object> idleSpinAction = IAction.From.loop((r, o) -> motor.setPower(IDLE_SPIN_POWER));
-            IAction<Object> distanceAction = new ActionGroup<>(
-                    IAction.From.loop((r, o) -> targetSpeed = speedComputer.getDesiredPower()),
-                    setMotorPowerAction.get()
+            controlLoopAction = IAction.From.loop((r, f) ->
+                    controlLoopOutput = distanceControlLoop.loop(
+                            motor.getSpec().proportionOfNoLoad(motor.getVelocityRPM()),
+                            desiredPower,
+                            f
+                    )
             );
 
-            controlSpeedToggle = new Toggle(true);
+            IAction<Object> idleSpinAction = IAction.From.loop((r, o) -> motor.setPower(IDLE_SPIN_POWER));
+            IAction<Object> distanceAction =
+                    IAction.From.loop((r, o) -> {
+                        desiredPower = speedComputer.getDesiredPower();
+                        motor.setPower(controlLoopOutput);
+                    });
+
+            controlSpeedToggle = new Toggle(false);
             isIdleToggle = new Toggle(true);
 
             stateMachine = new ActionStateMachine<>((state) -> {
@@ -112,8 +131,8 @@ public class OuttakeWheelController implements WithTelemetry.IWithTelemetry {
             });
 
             stateMachine.addNode(StateMachineControlState.IDLE);
-            stateMachine.addNode(StateMachineControlState.CONTROLLER);
-            stateMachine.addNode(StateMachineControlState.DISTANCE);
+            stateMachine.addNode(StateMachineControlState.CONTROLLER, controlLoop::reset, () -> {}, () -> {});
+            stateMachine.addNode(StateMachineControlState.DISTANCE, distanceControlLoop::reset, () -> {}, () -> {});
 
             /// ESCAPE IDLE IF IDLE TOGGLE IS OFF
             stateMachine.addArrow(
@@ -157,19 +176,29 @@ public class OuttakeWheelController implements WithTelemetry.IWithTelemetry {
 
             stateMachineAction = stateMachine;
         }
+
+        @Override
+        public IAction<Telemetry> getTelemetryAction() {
+            return WithTelemetry.fromLambda(() -> "State Machine State", telemetry -> {
+               telemetry.addData("desiredPower", desiredPower);
+               telemetry.addData("distance control loop output", controlLoopOutput);
+            });
+        }
     }
 
     LazyInit<StateMachineControl> stateMachineControl;
     public IAction<Object> stateMachineAction() {return stateMachineControl.get().stateMachineAction;}
     public IAction<Boolean> stateMachineControlSpeedToggleAction() {return stateMachineControl.get().controlSpeedToggleAction;}
     public IAction<Boolean> stateMachineIdleToggleAction() {return stateMachineControl.get().idleToggleAction;}
+    public IAction<Float> stateMachineControlLoopAction() {return stateMachineControl.get().controlLoopAction;}
     public WithTelemetry.IWithTelemetry stateMachineTelemetry() {return stateMachineControl.get().stateMachine;}
+    public WithTelemetry.IWithTelemetry stateMachineStateTelemetry() {return stateMachineControl.get();}
 
-
-    public OuttakeWheelController(DcMotorWrapper _motor, IControlLoop _controlLoop, Supplier<AprilTagDetection> _lastDetection) {
+    public OuttakeWheelController(DcMotorWrapper _motor, @NonNull IControlLoopBuildOpt<? extends IControlLoop> _controlLoop, Supplier<AprilTagDetection> _lastDetection) {
         motor = _motor;
         targetSpeed = 0f;
-        controlLoop = _controlLoop;
+        controlLoop = _controlLoop.build();
+
 
         lockToggle = new Toggle(false);
         motorSpeedToggle = new Toggle(false);
@@ -204,7 +233,8 @@ public class OuttakeWheelController implements WithTelemetry.IWithTelemetry {
         );
 
         stateMachineControl = new LazyInit<>(() -> new StateMachineControl(
-                new DistanceSpeedComputer(_lastDetection)
+                new DistanceSpeedComputer(_lastDetection),
+                _controlLoop.build()
         ));
 
         telemetryAction = new LazyInit<>(() ->
@@ -217,7 +247,7 @@ public class OuttakeWheelController implements WithTelemetry.IWithTelemetry {
         );
     }
     public OuttakeWheelController(DcMotorWrapper _motor, Supplier<AprilTagDetection> _lastDetection) {
-        this(_motor, new DirectControlLoop.Controller(), _lastDetection);
+        this(_motor, new DirectControlLoop.BuildOpt(), _lastDetection);
     }
 
     final LazyInit<IAction<Telemetry>> telemetryAction;

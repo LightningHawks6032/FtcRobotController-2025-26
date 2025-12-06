@@ -7,6 +7,8 @@ import org.firstinspires.ftc.teamcode.util.LazyInit;
 import org.firstinspires.ftc.teamcode.util.Util;
 import org.firstinspires.ftc.teamcode.util.WithTelemetry;
 
+import java.util.function.Supplier;
+
 public class HoodController implements WithTelemetry.IWithTelemetry {
     IServo servo;
     float down,up;
@@ -14,8 +16,18 @@ public class HoodController implements WithTelemetry.IWithTelemetry {
 
     final LazyInit<IAction<Float>> setHoodPosition;
     public IAction<Float> setHoodPositionAction() {return setHoodPosition.get();}
+    final LazyInit<IAction<Object>> setHoodDistancePosition;
+    public IAction<Object> setHoodPositionDistanceAction() {return setHoodDistancePosition.get();}
 
-    public HoodController(IServo _servo, float _down, float _up) {
+
+    float getPosFromDist(float dist) {
+        return (float)(//-0.00000138775 * dist * dist * dist
+                + 0.0000477005 * dist * dist
+                - 0.0050112 * dist
+                + 0.718849);
+    }
+
+    public HoodController(IServo _servo, float _down, float _up, Supplier<Float> distanceProvider) {
         servo = _servo;
         down = _down;
         up = _up;
@@ -28,6 +40,10 @@ public class HoodController implements WithTelemetry.IWithTelemetry {
                         (up - down) * pos + down
                 );
                 }));
+
+        setHoodDistancePosition = new LazyInit<>(() -> IAction.From.loop((r, o) -> {
+            servo.setPosition(getPosFromDist(distanceProvider.get()));
+        }));
 
         telemetryAction = new LazyInit<>(() -> WithTelemetry.fromLambda(() -> "Hood Controller", telemetry -> {
             telemetry.addData("Position", servo.getPosition());

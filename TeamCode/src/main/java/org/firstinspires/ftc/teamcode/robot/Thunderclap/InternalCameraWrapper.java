@@ -65,7 +65,7 @@ public class InternalCameraWrapper implements WithTelemetry.IWithTelemetry {
         telemetryAction = new LazyInit<>(() -> WithTelemetry.fromLambda(() -> "Camera", telemetry -> {
             if (isReading) {
                 telemetry.addData("Distance", lastReading.ftcPose.range);
-                telemetry.addData("Rotation", lastReading.robotPose.getOrientation().getYaw());
+                telemetry.addData("Rotation", lastReading.ftcPose.yaw);
             }
         }));
     }

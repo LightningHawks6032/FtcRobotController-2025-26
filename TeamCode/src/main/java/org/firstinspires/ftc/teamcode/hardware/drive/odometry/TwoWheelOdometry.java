@@ -7,6 +7,7 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.teamcode.components.action.IAction;
 import org.firstinspires.ftc.teamcode.hardware.drive.IIMU;
 import org.firstinspires.ftc.teamcode.hardware.drive.odometry.deadwheel.DeadwheelWrapper;
@@ -95,7 +96,7 @@ public class TwoWheelOdometry implements IOdometry {
     @Override
     public void loop(float dt) {
 
-        float rawHeading = (float) imu.getAngles().getYaw();
+        float rawHeading = (float) imu.getAngles().getYaw(AngleUnit.RADIANS);
         float heading = normDelta(rawHeading, prevHeading);
         float headingVel = imu.getVelocity().zRotationRate;
 
@@ -109,8 +110,9 @@ public class TwoWheelOdometry implements IOdometry {
         float dHoriz = dEnc.y;
 
 
-        float dVert_rot = dTheta * (wheelSpec.vert.x);
-        float dHoriz_rot = dTheta * (wheelSpec.horiz.x);
+        float dVert_rot  = dTheta * wheelSpec.vert.y;   // forward encoder sees arc from sideways offset
+        float dHoriz_rot = dTheta * wheelSpec.horiz.x;  // strafe encoder sees arc from forward/back offset
+
 
         float forward = dVert - dVert_rot;
         float strafe = dHoriz - dHoriz_rot;

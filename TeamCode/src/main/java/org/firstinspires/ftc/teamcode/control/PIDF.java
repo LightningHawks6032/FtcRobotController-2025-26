@@ -63,6 +63,13 @@ public class PIDF {
 
             //previousFilteredDerivative = 0f;
         }
+
+        @Override
+        public void reset() {
+            accumulatedError = 0f;
+            prev_error = 0f;
+            previousFilteredDerivative = 0f;
+        }
     }
 
     public static class BuildOpt implements IControlLoopBuildOpt<Controller> {

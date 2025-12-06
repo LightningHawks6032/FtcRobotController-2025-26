@@ -30,19 +30,28 @@ public class ManualShootOpmode extends OpMode {
                                 .rightBumperAction(
                                         robot.directDrive.fastModeAction()
                                 )
+                                .AAction(
+                                        robot.stateMachineDrive.lookAtAprilTagAction()
+                                )
                                 .XAction(
                                         robot.resetHeadingAction
+                                )
+                                .DPadAction(
+                                        robot.stateMachineDrive.lookAtUserDirectionAction()
                                 )
                                 .telemetry(
                                         robot.getOdometry(),
                                         robot.getDrive(),
-                                        robot.getIMU()
+                                        robot.getIMU(),
+                                        robot.stateMachineDrive
                                 )
                                 .loops(
-                                        robot.directDrive.splitAction()
+                                        //robot.directDrive.splitAction()
+                                        robot.stateMachineDrive.stateMachineAction()
                                 )
                                 .timeLoops(
-                                        robot.getOdometry().getLoopAction()
+                                        robot.getOdometry().getLoopAction(),
+                                        robot.stateMachineDrive.controlLoopAction()
                                 )
                                 .build(),
                 (robot, input) ->
@@ -65,12 +74,12 @@ public class ManualShootOpmode extends OpMode {
                                 .rightBumperAction(
                                         robot.outtakeController.stateMachineControlSpeedToggleAction()
                                 )
-                                .leftStickAction(
+                                /*.leftStickAction(
                                         AxisSplitterAction.TwoWay(
                                                 new EmptyAction<>(),
                                                 robot.hoodController.setHoodPositionAction()
                                         )
-                                )
+                                )*/
                                 .rightStickAction(
                                         AxisSplitterAction.TwoWay(
                                                 new EmptyAction<>(),
@@ -88,14 +97,17 @@ public class ManualShootOpmode extends OpMode {
                                         robot.outtakeController,
                                         robot.outtakeController.stateMachineTelemetry(),
                                         robot.hoodController,
-                                        robot.camera
+                                        robot.camera,
+                                        robot.outtakeController.stateMachineStateTelemetry()
                                 )
                                 .timeLoops(
-                                        robot.outtakeController.controlLoopAction()
+                                        robot.outtakeController.controlLoopAction(),
+                                        robot.outtakeController.stateMachineControlLoopAction()
                                 )
                                 .loops(
                                         robot.camera.cameraDetectAction(),
-                                        robot.outtakeController.stateMachineAction()
+                                        robot.outtakeController.stateMachineAction(),
+                                        robot.hoodController.setHoodPositionDistanceAction()
                                 )
                                 .build()
         );

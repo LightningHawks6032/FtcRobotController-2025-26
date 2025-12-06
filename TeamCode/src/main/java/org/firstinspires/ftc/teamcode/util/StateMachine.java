@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.util;
 
+import androidx.annotation.NonNull;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.function.Supplier;
@@ -50,12 +52,22 @@ public class StateMachine <T> {
         nodes.put(type, new Node(type, _onEnter, _onExit, _onLoop));
     }
 
+    public void addNodes(@NonNull T[] type, Runnable _onEnter, Runnable _onExit, Runnable _onLoop) {
+        for (T t : type) {
+            addNode(t, _onEnter, _onExit, _onLoop);
+        }
+    }
+
     static Runnable _emptyRunnable = () -> {};
     public void addNode(T type) {
 
         addNode(type, _emptyRunnable, _emptyRunnable, _emptyRunnable);
     }
-
+    public void addNodes(@NonNull T[] type) {
+        for (T t : type) {
+            addNode(t);
+        }
+    }
     public void addArrow(T source, T target, Supplier<Boolean> condition) {
         Arrow newArrow = new Arrow(target, condition);
 
@@ -75,5 +87,15 @@ public class StateMachine <T> {
 
     public T getCurrentNode() {
         return currentNode.type;
+    }
+    public StateMachine() {
+        nodes = new HashMap<>();
+        graph = new HashMap<>();
+    }
+
+    // -- stupid stuff luull
+    public void addSwitch(T source, T target, Supplier<Boolean> condition) {
+        addArrow(source, target, condition);
+        addArrow(target, source, () -> !condition.get());
     }
 }
