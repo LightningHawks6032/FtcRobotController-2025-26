@@ -25,7 +25,7 @@ public class TransferWheelController {
         transferPower = new LazyInit<>(() -> IAction.From.loop(
                 (robot, f) -> {
                     servo.setPosition((1 + f) / 2f);
-                    _syncIntake.accept(f > 0); // THIS MAY BE INCORRECT -_-
+                    _syncIntake.accept(f > 0);
                 }
         ));
     }

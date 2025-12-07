@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.robot.ClankerHawk2A;
 
 import androidx.annotation.NonNull;
 
+import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.IMU;
 
@@ -21,6 +22,7 @@ import org.firstinspires.ftc.teamcode.hardware.ServoWrapper;
 import org.firstinspires.ftc.teamcode.hardware.drive.DriveMotors;
 import org.firstinspires.ftc.teamcode.hardware.drive.IIMU;
 import org.firstinspires.ftc.teamcode.hardware.drive.odometry.IOdometry;
+import org.firstinspires.ftc.teamcode.hardware.drive.odometry.PinpointOdometry;
 import org.firstinspires.ftc.teamcode.hardware.drive.odometry.ThreeWheelOdometry;
 import org.firstinspires.ftc.teamcode.opmodes.teleop.test.DriveMotorTestOpmode;
 import org.firstinspires.ftc.teamcode.util.Util;

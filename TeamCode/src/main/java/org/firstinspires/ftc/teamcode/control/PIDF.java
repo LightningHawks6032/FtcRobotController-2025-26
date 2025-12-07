@@ -23,21 +23,21 @@ public class PIDF {
     }
 
     public static class Controller implements IControlLoop{
-        Weights weights;
+        final Weights weights;
         float accumulatedError;
         float prev_error;
         float previousFilteredDerivative;
 
-        public void setWeights(Weights _weights) {
+        /*public void setWeights(Weights _weights) {
             weights = _weights;
-        }
+        }*/
 
         public float loop(float _current_x, float _target_x, float _dt) {
             float x_error = _target_x - _current_x;
 
-            if (x_error <= 1e-3) {
+            /*if (x_error <= 1e-3) {
                 x_error = 0;
-            }
+            }*/
 
 
             accumulatedError *= (float) Math.exp(-weights.decayRate * _dt);

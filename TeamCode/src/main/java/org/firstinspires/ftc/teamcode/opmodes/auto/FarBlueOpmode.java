@@ -62,18 +62,24 @@ public class FarBlueOpmode extends OpMode {
     TimerWrapper timer;
     AutoActionSequence<ElapsedContainer> getSequence() {
         return new AutoActionSequence<>(
-                new ActionAutoAction<>(0.1f, robot.resetHeadingAction, it -> true),
-                new ActionAutoAction<>(1.67f, robot.directDrive.directDriveAction(), it -> new Vec2Rot(0, 1, 0)),
-                new ActionAutoAction<>(0.1f, robot.directDrive.directDriveAction(), it -> new Vec2Rot(0, 0, 0)),
                 new WaitAutoAction(1.5f),
-                new ActionAutoAction<>(0.2f, robot.directDrive.directDriveAction(), it -> new Vec2Rot(0, 0, -1)),
-                new ActionAutoAction<>(0.1f, robot.directDrive.directDriveAction(), it -> new Vec2Rot(0, 0, 0)),
-                new ActionAutoAction<>(0.1f, robot.outtakeController.stateMachineIdleToggleAction(), it -> true),
-                new ActionAutoAction<>(0.1f, robot.outtakeController.stateMachineIdleToggleAction(), it -> false),
-                new WaitAutoAction(2f),
-                new ActionAutoAction<>(5f, robot.transferController.transferPowerAction(), it -> 1f),
-                new ActionAutoAction<>(0.1f, robot.transferController.transferPowerAction(), it -> 0f)
+                new FarRedOpmode.ActionAutoAction<>(0.1f, robot.intakeController.motorPowerToggleAction(), it -> true),
+                new FarRedOpmode.ActionAutoAction<>(0.1f, robot.intakeController.motorPowerToggleAction(), it -> false),
+                new FarRedOpmode.ActionAutoAction<>(0.1f, robot.resetHeadingAction, it -> true),
+                new FarRedOpmode.ActionAutoAction<>(1.47f, robot.directDrive.directDriveAction(), it -> new Vec2Rot(0, 1, 0)),
 
+                //new LocalizationDisplacement(new Vec2Rot(0, 24 * 5, 0), transControlBuild, rotControlBuild.build()),
+                new FarRedOpmode.ActionAutoAction<>(0.1f, robot.directDrive.directDriveAction(), it -> new Vec2Rot(0, 0, 0)),
+                new WaitAutoAction(1.5f),
+                new FarRedOpmode.ActionAutoAction<>(0.2f, robot.directDrive.directDriveAction(), it -> new Vec2Rot(0, 0, -1)),
+                new FarRedOpmode.ActionAutoAction<>(0.1f, robot.directDrive.directDriveAction(), it -> new Vec2Rot(0, 0, 0)),
+                new FarRedOpmode.ActionAutoAction<>(0.1f, robot.outtakeController.stateMachineIdleToggleAction(), it -> true),
+                new FarRedOpmode.ActionAutoAction<>(0.1f, robot.outtakeController.stateMachineIdleToggleAction(), it -> false),
+                new WaitAutoAction(2f),
+                new FarRedOpmode.ActionAutoAction<>(5f, robot.transferController.transferPowerAction(), it -> 1f),
+                new FarRedOpmode.ActionAutoAction<>(0.1f, robot.transferController.transferPowerAction(), it -> 0f),
+                new FarRedOpmode.ActionAutoAction<>(1.5f, robot.directDrive.directDriveAction(), it -> new Vec2Rot(-0.5f, -0.5f, 0f)),
+                new FarRedOpmode.ActionAutoAction<>(0.1f, robot.directDrive.directDriveAction(), it -> new Vec2Rot(0, 0, 0))
         );
     }
 
@@ -94,7 +100,7 @@ public class FarBlueOpmode extends OpMode {
         robot.outtakeController.stateMachineAction().loop(robot, 0);
         robot.outtakeController.controlLoopAction().loop(robot, timer.get());
         robot.outtakeController.stateMachineControlLoopAction().loop(robot, timer.get());
-        actionExecutor.loop(robot, gamepad1.a);
+        actionExecutor.loop(robot, true);
         timer.reset();
     }
 }

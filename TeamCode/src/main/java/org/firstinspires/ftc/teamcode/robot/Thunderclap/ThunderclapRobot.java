@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.robot.Thunderclap;
 
 import androidx.annotation.NonNull;
 
+import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.IMU;
 
@@ -20,6 +21,7 @@ import org.firstinspires.ftc.teamcode.hardware.ServoWrapper;
 import org.firstinspires.ftc.teamcode.hardware.drive.DriveMotors;
 import org.firstinspires.ftc.teamcode.hardware.drive.IIMU;
 import org.firstinspires.ftc.teamcode.hardware.drive.odometry.IOdometry;
+import org.firstinspires.ftc.teamcode.hardware.drive.odometry.PinpointOdometry;
 import org.firstinspires.ftc.teamcode.hardware.drive.odometry.TwoWheelOdometry;
 import org.firstinspires.ftc.teamcode.util.Util;
 import org.firstinspires.ftc.teamcode.util.Vec2;
@@ -60,6 +62,8 @@ public class ThunderclapRobot implements IRobot {
         return imu;
     }
 
+    public boolean rumbleG2 = false;
+
     public ThunderclapRobot(@NonNull HardwareMap hardwareMap) {
         imu = new InternalIMUWrapper(hardwareMap.get(IMU.class, "imu"));
 
@@ -81,23 +85,7 @@ public class ThunderclapRobot implements IRobot {
                 false
         ));
 
-        odometry = new TwoWheelOdometry(
-                new TwoWheelOdometry.WheelSpec(
-                        2000,
-                        2.4f,
-                        new Vec2(0, -9), //1.6
-                        //new Vec2(0, -9),
-                        new Vec2(-1f, 18) //0.6
-                ),
-                TwoWheelOdometry.Wheels.fromMap(hardwareMap.dcMotor, "fl", "fr")
-                        .reversalMap(
-                                new TwoWheelOdometry.WheelReversalPattern(
-                                        true,
-                                        true
-                                )
-                        ),
-                getIMU()
-        );
+        odometry = new PinpointOdometry(hardwareMap.get(GoBildaPinpointDriver.class, "pinpoint"));
 
         directDrive = new DirectDrive(driveMotors, DirectDrive.fieldCentricFromIMUGamepad(imu));
         directDrive.setDrivePowerFactor(0.8f);
@@ -105,21 +93,21 @@ public class ThunderclapRobot implements IRobot {
 
         camera = new InternalCameraWrapper(hardwareMap);
         stateMachineDrive = new StateMachineDrive(directDrive, new PIDF.BuildOpt(new PIDF.Weights(
-                0.8f, 0f,0.05f,0,0,1
+                1.2f * 20f, 0.01f,0.05f,0f,0.01f,1
         )), () -> {
             float fallback = 0f;
             AprilTagDetection last = camera.lastReading;
             if (last == null) {return fallback;}
             return (float)last.robotPose.getOrientation().getYaw(AngleUnit.RADIANS);
-        }, () -> (float)imu.getAngles().getYaw(AngleUnit.RADIANS));
+        }, () -> odometry.getPos().r);
 
         outtakeController = new OuttakeWheelController(
                 Util.also(new DcMotorWrapper(hardwareMap.dcMotor.get("outtake flywheel"), true, MotorSpec.GOBILDA_5000_0002_0001),
                         m->m.setDirection(IMotor.Direction.REVERSE)),
                     new PIDF.BuildOpt(new PIDF.Weights(
-                            0.9f,
-                            0.7f,0.25f,
-                            1f,
+                            0.9f/* * 0.5f*/,
+                            0.7f/* * 0.25f*/,0.25f,
+                            1f/* * 1.75f*/,
                             0.1f,1
                     )),
                 () -> camera.lastReading

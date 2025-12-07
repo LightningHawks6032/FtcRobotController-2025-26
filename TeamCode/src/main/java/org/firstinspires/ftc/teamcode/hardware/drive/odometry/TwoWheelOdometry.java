@@ -169,7 +169,7 @@ public class TwoWheelOdometry implements IOdometry {
     final IAction<Telemetry> telem = new WithTelemetry.Action<WithTelemetry.ITelemetry>(new WithTelemetry.ITelemetry() {
         @Override
         public String getName() {
-            return "Three Wheel Odometry";
+            return "Two Wheel Odometry";
         }
 
         @Override

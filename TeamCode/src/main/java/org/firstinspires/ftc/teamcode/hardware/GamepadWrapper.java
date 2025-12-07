@@ -30,4 +30,8 @@ public class GamepadWrapper {
         gamepad = _gamepad;
     }
 
+    public void rumble() {
+        gamepad.rumble(100);
+    }
+
 }

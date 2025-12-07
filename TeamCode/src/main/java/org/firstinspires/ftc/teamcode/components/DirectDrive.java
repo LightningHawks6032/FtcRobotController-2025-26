@@ -7,6 +7,7 @@ import org.firstinspires.ftc.teamcode.components.action.IAction;
 import org.firstinspires.ftc.teamcode.components.action.SplitAction;
 import org.firstinspires.ftc.teamcode.hardware.drive.DriveMotors;
 import org.firstinspires.ftc.teamcode.hardware.drive.IIMU;
+import org.firstinspires.ftc.teamcode.hardware.drive.odometry.IOdometry;
 import org.firstinspires.ftc.teamcode.util.Vec2;
 import org.firstinspires.ftc.teamcode.util.Vec2Rot;
 import org.jetbrains.annotations.Contract;
@@ -96,6 +97,12 @@ public class DirectDrive {
     @Contract(pure = true)
     public static Function<Vec2Rot, Vec2Rot> fieldCentricFromIMU(IIMU _imu) {
         return (v) -> new Vec2Rot(v.asVec2().rotateOrigin((float) _imu.getAngles().getYaw(AngleUnit.RADIANS)), v.r);
+    }
+
+    @NonNull
+    @Contract(pure = true)
+    public static BiFunction<Vec2, Vec2, Vec2Rot> fieldCentricFromOdometryGamepad(IOdometry _odo) {
+        return (v1, v2) -> new Vec2Rot(v1.rotateOrigin(_odo.getPos().r), v2.x);
     }
 
 

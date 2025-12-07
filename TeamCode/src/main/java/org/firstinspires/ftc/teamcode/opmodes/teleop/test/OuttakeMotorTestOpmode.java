@@ -8,7 +8,8 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import org.firstinspires.ftc.teamcode.hardware.DcMotorWrapper;
 import org.firstinspires.ftc.teamcode.hardware.DebugMotor;
 import org.firstinspires.ftc.teamcode.hardware.MotorSpec;
-
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
+@Disabled
 @TeleOp(name = "Outtake Motor Test", group = "Testing")
 public class OuttakeMotorTestOpmode extends OpMode {
     DcMotorWrapper motor1;

@@ -5,7 +5,8 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.teamcode.control.PIDF;
 import org.firstinspires.ftc.teamcode.hardware.DcMotorWrapper;
-
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
+@Disabled
 @TeleOp(name = "TestingTeleop", group = "Testing")
 public class TestingTeleop extends OpMode {
 

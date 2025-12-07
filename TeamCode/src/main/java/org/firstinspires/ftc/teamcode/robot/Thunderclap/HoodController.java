@@ -21,7 +21,7 @@ public class HoodController implements WithTelemetry.IWithTelemetry {
 
 
     float getPosFromDist(float dist) {
-        return (float)(//-0.00000138775 * dist * dist * dist
+        return (float)(
                 + 0.0000477005 * dist * dist
                 - 0.0050112 * dist
                 + 0.718849);

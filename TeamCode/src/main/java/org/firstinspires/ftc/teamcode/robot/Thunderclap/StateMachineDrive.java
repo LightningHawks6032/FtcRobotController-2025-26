@@ -126,9 +126,9 @@ public class StateMachineDrive implements WithTelemetry.IWithTelemetry {
 
         stateMachine.addNode(State.DIRECT);
 
-        stateMachine.addNode(State.LOOK_AT_APRIL_TAG, controlLoop::reset, () -> {}, () -> {});
+        stateMachine.addNode(State.LOOK_AT_APRIL_TAG, ()->{}, () -> {}, () -> {});
 
-        stateMachine.addNode(State.LOOK_AT_USER_DIRECTION, userDirectionControlLoop::reset, () -> {}, () -> {});
+        stateMachine.addNode(State.LOOK_AT_USER_DIRECTION, ()->{}, () -> {}, () -> {});
 
         stateMachine.addSwitch(State.DIRECT,
                 State.LOOK_AT_APRIL_TAG,

@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.opmodes.teleop.test;
 
 import androidx.annotation.NonNull;
 
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.HardwareMap;
@@ -22,6 +23,7 @@ import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
 
 import java.util.List;
 
+@Disabled
 @TeleOp(name = "April Tag Following Opmode", group = "Testing")
 public class AprilTagFollowingOpmode extends OpMode {
 

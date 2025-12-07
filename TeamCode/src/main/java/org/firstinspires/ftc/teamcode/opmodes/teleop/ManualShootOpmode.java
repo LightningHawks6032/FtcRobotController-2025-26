@@ -1,10 +1,12 @@
 package org.firstinspires.ftc.teamcode.opmodes.teleop;
 
+import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.teamcode.components.action.AxisSplitterAction;
 import org.firstinspires.ftc.teamcode.components.action.EmptyAction;
+import org.firstinspires.ftc.teamcode.components.action.IAction;
 import org.firstinspires.ftc.teamcode.opmodes.TeleOpmode;
 import org.firstinspires.ftc.teamcode.robot.Thunderclap.ThunderclapRobot;
 
@@ -50,8 +52,7 @@ public class ManualShootOpmode extends OpMode {
                                         robot.stateMachineDrive.stateMachineAction()
                                 )
                                 .timeLoops(
-                                        robot.getOdometry().getLoopAction(),
-                                        robot.stateMachineDrive.controlLoopAction()
+                                        robot.getOdometry().getLoopAction()
                                 )
                                 .build(),
                 (robot, input) ->
@@ -102,15 +103,21 @@ public class ManualShootOpmode extends OpMode {
                                 )
                                 .timeLoops(
                                         robot.outtakeController.controlLoopAction(),
-                                        robot.outtakeController.stateMachineControlLoopAction()
+                                        robot.outtakeController.stateMachineControlLoopAction(),
+                                        robot.stateMachineDrive.controlLoopAction()
                                 )
                                 .loops(
                                         robot.camera.cameraDetectAction(),
                                         robot.outtakeController.stateMachineAction(),
-                                        robot.hoodController.setHoodPositionDistanceAction()
+                                        robot.hoodController.setHoodPositionDistanceAction(),
+                                        IAction.From.loop((r, o) -> {
+                                            if (robot.rumbleG2) gamepad2.rumble(100);
+                                        })
                                 )
                                 .build()
         );
+
+        hardwareMap.servo.get("hood").setPosition(0.8);
     }
 
     @Override

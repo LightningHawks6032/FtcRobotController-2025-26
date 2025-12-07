@@ -68,7 +68,6 @@ public class SensorGoBildaPinpoint extends OpMode {
         }
         pinpoint.update();
         Pose2D pose2D = pinpoint.getPosition();
-
         telemetry.addData("X coordinate (IN)", pose2D.getX(DistanceUnit.INCH));
         telemetry.addData("Y coordinate (IN)", pose2D.getY(DistanceUnit.INCH));
         telemetry.addData("Heading angle (DEGREES)", pose2D.getHeading(AngleUnit.DEGREES));

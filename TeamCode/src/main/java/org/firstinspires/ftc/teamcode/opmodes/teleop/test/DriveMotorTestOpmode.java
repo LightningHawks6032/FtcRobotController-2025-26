@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.opmodes.teleop.test;
 import androidx.annotation.NonNull;
 
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
+
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -34,7 +35,8 @@ import org.firstinspires.ftc.teamcode.util.Vec2Rot;
 import org.firstinspires.ftc.teamcode.util.WithTelemetry;
 
 import java.util.function.Function;
-//@Disabled // atp ts needs to be removed
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
+@Disabled
 @TeleOp(name = "Drive Motor Test", group = "Testing") //fortnite
 public class DriveMotorTestOpmode extends OpMode {
     static class MotorTestAction implements IAutoAction<ElapsedContainer> {

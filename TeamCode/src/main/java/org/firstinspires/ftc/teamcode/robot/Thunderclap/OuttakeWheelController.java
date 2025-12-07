@@ -9,15 +9,29 @@ import org.firstinspires.ftc.teamcode.control.DirectControlLoop;
 import org.firstinspires.ftc.teamcode.control.IControlLoop;
 import org.firstinspires.ftc.teamcode.control.IControlLoopBuildOpt;
 import org.firstinspires.ftc.teamcode.hardware.DcMotorWrapper;
+import org.firstinspires.ftc.teamcode.hardware.DebugMotor;
+import org.firstinspires.ftc.teamcode.hardware.IMotor;
 import org.firstinspires.ftc.teamcode.util.LazyInit;
 import org.firstinspires.ftc.teamcode.util.Toggle;
 import org.firstinspires.ftc.teamcode.util.WithTelemetry;
 import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
 
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 public class OuttakeWheelController implements WithTelemetry.IWithTelemetry {
     final DcMotorWrapper motor;
+    DcMotorWrapper supplementaryMotor;
+    // TODO: Fix
+    public void setSupplementaryMotor(DcMotorWrapper _mot) {
+        supplementaryMotor = _mot;
+    }
+
+    void setMotorPower(float pow) {
+        motor.setPower(pow);
+        if (supplementaryMotor != null) supplementaryMotor.setPower(pow);
+    }
+
     float targetSpeed;
     final LazyInit<IAction<Float>> setMotorSpeedAction;
     /// Sets motor speed as proportion of max rpm
@@ -77,6 +91,7 @@ public class OuttakeWheelController implements WithTelemetry.IWithTelemetry {
         /// Adjust by distance measured from camera
         DISTANCE
     }
+
     class StateMachineControl implements WithTelemetry.IWithTelemetry {
 
         final ActionStateMachine<StateMachineControlState, Object> stateMachine;
@@ -93,6 +108,7 @@ public class OuttakeWheelController implements WithTelemetry.IWithTelemetry {
 
         final float IDLE_SPIN_POWER = -0.3f;
 
+
         public StateMachineControl(DistanceSpeedComputer _speedComputer, IControlLoop _controlLoop) {
             speedComputer = _speedComputer;
             distanceControlLoop = _controlLoop;
@@ -107,11 +123,11 @@ public class OuttakeWheelController implements WithTelemetry.IWithTelemetry {
                     )
             );
 
-            IAction<Object> idleSpinAction = IAction.From.loop((r, o) -> motor.setPower(IDLE_SPIN_POWER));
+            IAction<Object> idleSpinAction = IAction.From.loop((r, o) -> setMotorPower(IDLE_SPIN_POWER));
             IAction<Object> distanceAction =
                     IAction.From.loop((r, o) -> {
                         desiredPower = speedComputer.getDesiredPower();
-                        motor.setPower(controlLoopOutput);
+                        setMotorPower(controlLoopOutput);
                     });
 
             controlSpeedToggle = new Toggle(false);
@@ -180,8 +196,8 @@ public class OuttakeWheelController implements WithTelemetry.IWithTelemetry {
         @Override
         public IAction<Telemetry> getTelemetryAction() {
             return WithTelemetry.fromLambda(() -> "State Machine State", telemetry -> {
-               telemetry.addData("desiredPower", desiredPower);
-               telemetry.addData("distance control loop output", controlLoopOutput);
+               telemetry.addData("Desired Power", desiredPower);
+               telemetry.addData("Distance Control Loop Output", controlLoopOutput);
             });
         }
     }
@@ -193,6 +209,8 @@ public class OuttakeWheelController implements WithTelemetry.IWithTelemetry {
     public IAction<Float> stateMachineControlLoopAction() {return stateMachineControl.get().controlLoopAction;}
     public WithTelemetry.IWithTelemetry stateMachineTelemetry() {return stateMachineControl.get().stateMachine;}
     public WithTelemetry.IWithTelemetry stateMachineStateTelemetry() {return stateMachineControl.get();}
+
+
 
     public OuttakeWheelController(DcMotorWrapper _motor, @NonNull IControlLoopBuildOpt<? extends IControlLoop> _controlLoop, Supplier<AprilTagDetection> _lastDetection) {
         motor = _motor;
@@ -229,7 +247,7 @@ public class OuttakeWheelController implements WithTelemetry.IWithTelemetry {
                 IAction.From.loop((r, b) -> lockToggle.loop(b)));
 
         setMotorPowerAction = new LazyInit<>(() ->
-            IAction.From.loop((r, o) -> motor.setPower(controlLoopOutput))
+            IAction.From.loop((r, o) -> setMotorPower(controlLoopOutput))
         );
 
         stateMachineControl = new LazyInit<>(() -> new StateMachineControl(

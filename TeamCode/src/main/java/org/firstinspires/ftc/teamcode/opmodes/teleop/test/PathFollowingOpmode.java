@@ -3,14 +3,25 @@ package org.firstinspires.ftc.teamcode.opmodes.teleop.test;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
+import org.firstinspires.ftc.teamcode.auto.action.AutoActionSequence;
+import org.firstinspires.ftc.teamcode.auto.action.ElapsedContainer;
+import org.firstinspires.ftc.teamcode.auto.action.IActionAutoAction;
+import org.firstinspires.ftc.teamcode.auto.action.IAutoAction;
+import org.firstinspires.ftc.teamcode.auto.action.WaitAutoAction;
 import org.firstinspires.ftc.teamcode.components.DirectDrive;
+import org.firstinspires.ftc.teamcode.components.IRobot;
+import org.firstinspires.ftc.teamcode.components.action.LaunchAutoSequenceAction;
 import org.firstinspires.ftc.teamcode.components.action.PredicateAction;
+import org.firstinspires.ftc.teamcode.control.IControlLoop;
+import org.firstinspires.ftc.teamcode.control.IControlLoopBuildOpt;
 import org.firstinspires.ftc.teamcode.control.PIDF;
 import org.firstinspires.ftc.teamcode.hardware.drive.BezierPath;
 import org.firstinspires.ftc.teamcode.hardware.drive.IPath;
 import org.firstinspires.ftc.teamcode.hardware.drive.PathPoint;
 import org.firstinspires.ftc.teamcode.opmodes.TeleOpmode;
 import org.firstinspires.ftc.teamcode.robot.ClankerHawk2A.ClankerHawk2A;
+import org.firstinspires.ftc.teamcode.robot.Thunderclap.ThunderclapRobot;
+import org.firstinspires.ftc.teamcode.util.Pair;
 import org.firstinspires.ftc.teamcode.util.TimerWrapper;
 import org.firstinspires.ftc.teamcode.util.Vec2;
 import org.firstinspires.ftc.teamcode.util.Vec2Rot;
@@ -19,31 +30,83 @@ import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.Queue;
 import java.util.function.BiFunction;
+import java.util.function.Function;
 
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 @Autonomous
 public class PathFollowingOpmode extends OpMode {
-
-
     Queue<IPath<Vec2>> paths;
     TimerWrapper pathTimer, loopTimer;
     PIDF.Controller pidX, pidY;
-    ClankerHawk2A robot;
+    ThunderclapRobot robot;
     DirectDrive driveAction;
     Vec2 fixed = new Vec2(150, 150);
 
-    /// we'll fix this for real auto; this is just testing :3c
-    TeleOpmode<ClankerHawk2A> teleop;
+    LaunchAutoSequenceAction<ElapsedContainer> actionExecutor;
+
+    class LocalizationTravel implements IAutoAction<ElapsedContainer> {
+
+        final static float TRANS_THRESHOLD = 5f;
+        Vec2 target;
+
+        @Override
+        public boolean isDone(float duration) {
+            Vec2 diff = target.sub(robot.getOdometry().getPos().asVec2());
+            return diff.mag() <= TRANS_THRESHOLD;
+        }
+
+        @Override
+        public Function<Pair<Float, IRobot>, ElapsedContainer> getDataProvider() {
+            return _elapsed -> new ElapsedContainer(_elapsed.fst);
+        }
+
+        public LocalizationTravel(Vec2 _target) {
+            target = _target;
+        }
+
+        @Override
+        public void init(IRobot robot, ElapsedContainer data) {
+
+        }
+
+        @Override
+        public void start(IRobot robot, ElapsedContainer data) {
+
+        }
+
+        @Override
+        public void loop(IRobot _robot, ElapsedContainer data) {
+            Vec2Rot pos = robot.getOdometry().getPos();
+            robot.directDrive.directDriveAction().loop(robot,
+                    new Vec2Rot(
+                            pidX.loop(pos.x, target.x, loopTimer.get()),
+                            pidY.loop(pos.y, target.y, loopTimer.get()),
+                            0
+                    )
+            );
+        }
+    }
+
+    AutoActionSequence<ElapsedContainer> getSequence() {
+        return new AutoActionSequence<>(
+                // add localization displacement
+                new WaitAutoAction(1f),
+                new LocalizationTravel(fixed),
+                new IActionAutoAction<>(0.1f, robot.directDrive.directDriveAction(), (t) -> new Vec2Rot(0,0,0))
+        );
+    }
+
     @Override
     public void init() {
-        robot = new ClankerHawk2A(hardwareMap);
+        robot = new ThunderclapRobot(hardwareMap);
         pathTimer = new TimerWrapper();
         loopTimer = new TimerWrapper();
 
         pidX = new PIDF.Controller(
-                new PIDF.Weights(0.0035f, 0f, 0.1f, 1, 0.3f, 0.1f)
+                new PIDF.Weights(0.0035f, 0f, 0.1f, 0, 0.3f, 0.1f)
         );
         pidY = new PIDF.Controller(
-                new PIDF.Weights(0.0035f, 0f, 0.1f, 1, 0.3f, 0.1f)
+                new PIDF.Weights(0.0035f, 0f, 0.1f, 0, 0.3f, 0.1f)
         );
 
         paths = new LinkedList<>(Arrays.asList(
@@ -56,82 +119,16 @@ public class PathFollowingOpmode extends OpMode {
                 )
         ));
 
-
-
-        driveAction = new DirectDrive(robot.getDrive(),
-                ((BiFunction<Vec2, Vec2, Vec2Rot>)(v1, v2) -> {
-            return new Vec2Rot(
-                    pidX.loop(robot.getOdometry().getPos().x, fixed.x, loopTimer.get()),
-                    pidY.loop(robot.getOdometry().getPos().y, fixed.y, loopTimer.get())
-            ,0);}).andThen(DirectDrive.fieldCentricFromIMU(robot.getIMU()))
-
-                );
-
-        teleop = new TeleOpmode<>(
-                this, robot,
-                (robot, b) -> b
-                        .leftStickAction(
-                                driveAction.splitAction().leftSetter(),
-                                robot.directDrive.splitAction().leftSetter()
-                        )
-                        .rightStickAction(
-                                driveAction.splitAction().rightSetter(),
-                                robot.directDrive.splitAction().rightSetter()
-                        )
-                        .XAction(
-                                robot.resetHeadingAction
-                        )
-                        .telemetry(
-                                robot.getOdometry(),
-                                robot.getDrive(),
-                                robot.getIMU()
-                        )
-                        .loops(
-                                new PredicateAction<>(
-                                        driveAction.splitAction(),
-                                        robot.directDrive.splitAction(),
-                                        (r, o) -> gamepad1.right_stick_button
-                                )
-                        )
-                        .timeLoops(
-                                robot.getOdometry().getLoopAction()
-                        )
-                        .build(),
-                TeleOpmode.EmptyGamepad()
-        );
+        actionExecutor = new LaunchAutoSequenceAction<>(getSequence());
     }
 
     PathPoint<Vec2> getPathPoint() {
         return paths.peek().getPoint(pathTimer.get());
     }
 
-    Vec2 getDir(float dt) {
-        PathPoint<Vec2> point = getPathPoint();
-
-        Vec2 pos = point.pos.sub(new Vec2(49, 45));
-
-        return new Vec2(
-                pidX.loop(robot.getOdometry().getPos().x, pos.x, dt),
-                pidY.loop(robot.getOdometry().getPos().y, pos.y, dt)
-        ).norm();
-    }
-
     @Override
     public void loop() {
-//        robot.getOdometry().getLoopAction().loop(robot, loopTimer.get());
-//        robot.getOdometry().getTelemetryAction().loop(robot, telemetry);
-//        telemetry.addData("Target", getPathPoint().pos.toString());
-//
-//        Vec2 dir = getDir(loopTimer.get());
-//        telemetry.addData("Dir", dir.toString());
-//        driveAction.directDriveAction().loop(robot, new Vec2Rot(dir.scale(0.3f), 0));
-//
-//        loopTimer.reset();
-//        if (pathTimer.get() >= paths.peek().getDuration()) {
-//            paths.poll();
-//            pathTimer.reset();
-//        }
-        teleop.loop();
+        actionExecutor.loop(robot, gamepad1.a);
         loopTimer.reset();
     }
 }
