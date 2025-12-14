@@ -27,17 +27,13 @@ public class LookAtAngleOpmode extends OpMode {
         timer = new TimerWrapper();
         control = new PIDF.Controller(
                 new PIDF.Weights(
-                        0.3f, 0.0f,0.0f,0f,0.01f,1
+                        1f, 0.1f,0.05f,0f,0.01f,1
 
                 )
         );
     }
 
-    float computeShortestSignedAngle(float current, float target) {
-        float difference = Util.normAngle2Pi(target - current);
 
-        return (float)Math.atan2(Math.sin(difference), Math.cos(difference));
-    }
 
     @Override
     public void loop() {
@@ -49,7 +45,7 @@ public class LookAtAngleOpmode extends OpMode {
         else {desiredAngle = 0f;}
 
         pow = control.loop(
-                /*180 / (float)Math.PI * */computeShortestSignedAngle(Util.normAngle2Pi(robot.getOdometry().getPos().r), desiredAngle),
+                /*180 / (float)Math.PI * */Util.computeShortestSignedAngle(Util.normAngle2Pi(robot.getOdometry().getPos().r), desiredAngle),
                 0f,
                 timer.get()
         );
@@ -60,6 +56,7 @@ public class LookAtAngleOpmode extends OpMode {
         telemetry.addData("robot angle", Util.normAngle(robot.getOdometry().getPos().r));
         telemetry.addData("desiredAngle", desiredAngle);
         telemetry.addData("power", pow);
+        telemetry.addData("Distance", Util.computeShortestSignedAngle(Util.normAngle2Pi(robot.getOdometry().getPos().r), desiredAngle));
 
         timer.reset();
     }

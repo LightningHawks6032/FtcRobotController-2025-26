@@ -36,4 +36,10 @@ public class Util {
         return a;
     }
 
+    public static float computeShortestSignedAngle(float current, float target) {
+        float difference = Util.normAngle2Pi(target - current);
+
+        return (float)Math.atan2(Math.sin(difference), Math.cos(difference));
+    }
+
 }

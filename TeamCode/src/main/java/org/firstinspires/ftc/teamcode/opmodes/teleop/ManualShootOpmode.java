@@ -32,25 +32,28 @@ public class ManualShootOpmode extends OpMode {
                                 .rightBumperAction(
                                         robot.directDrive.fastModeAction()
                                 )
-                                .AAction(
+                                /*.AAction(
                                         robot.stateMachineDrive.lookAtAprilTagAction()
                                 )
+                                .BAction(
+                                        robot.stateMachineDrive.lookAtAprilTagActionFixed()
+                                )*/
                                 .XAction(
                                         robot.resetHeadingAction
                                 )
-                                .DPadAction(
+                                /*.DPadAction(
                                         robot.stateMachineDrive.lookAtUserDirectionAction()
-                                )
+                                )*/
                                 .telemetry(
                                         robot.getOdometry(),
                                         robot.getDrive(),
-                                        robot.getIMU(),
-                                        robot.stateMachineDrive
+                                        robot.getIMU()
+                                        //robot.stateMachineDrive
                                 )
-                                .loops(
+                                /*.loops(
                                         //robot.directDrive.splitAction()
-                                        robot.stateMachineDrive.stateMachineAction()
-                                )
+                                        //robot.stateMachineDrive.stateMachineAction()
+                                )*/
                                 .timeLoops(
                                         robot.getOdometry().getLoopAction()
                                 )
@@ -66,21 +69,12 @@ public class ManualShootOpmode extends OpMode {
                                 .XAction(
                                         robot.intakeController.motorPowerToggleAction()
                                 )
-                                /*.YAction(
-                                        robot.outtakeController.setMotorSpeedButtonAction()
-                                )*/
                                 .leftBumperAction(
                                         robot.outtakeController.stateMachineIdleToggleAction()
                                 )
                                 .rightBumperAction(
                                         robot.outtakeController.stateMachineControlSpeedToggleAction()
                                 )
-                                /*.leftStickAction(
-                                        AxisSplitterAction.TwoWay(
-                                                new EmptyAction<>(),
-                                                robot.hoodController.setHoodPositionAction()
-                                        )
-                                )*/
                                 .rightStickAction(
                                         AxisSplitterAction.TwoWay(
                                                 new EmptyAction<>(),
@@ -109,10 +103,7 @@ public class ManualShootOpmode extends OpMode {
                                 .loops(
                                         robot.camera.cameraDetectAction(),
                                         robot.outtakeController.stateMachineAction(),
-                                        robot.hoodController.setHoodPositionDistanceAction(),
-                                        IAction.From.loop((r, o) -> {
-                                            if (robot.rumbleG2) gamepad2.rumble(100);
-                                        })
+                                        robot.hoodController.setHoodPositionDistanceAction()
                                 )
                                 .build()
         );

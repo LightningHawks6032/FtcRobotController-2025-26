@@ -62,7 +62,7 @@ public class ThunderclapRobot implements IRobot {
         return imu;
     }
 
-    public boolean rumbleG2 = false;
+    float heading = 0f;
 
     public ThunderclapRobot(@NonNull HardwareMap hardwareMap) {
         imu = new InternalIMUWrapper(hardwareMap.get(IMU.class, "imu"));
@@ -92,26 +92,37 @@ public class ThunderclapRobot implements IRobot {
 
 
         camera = new InternalCameraWrapper(hardwareMap);
-        stateMachineDrive = new StateMachineDrive(directDrive, new PIDF.BuildOpt(new PIDF.Weights(
-                1.2f * 20f, 0.01f,0.05f,0f,0.01f,1
-        )), () -> {
+        stateMachineDrive = new StateMachineDrive(directDrive,
+                new PIDF.BuildOpt(new PIDF.Weights(
+                1f, 0.1f,0.05f,0f,0.01f,1)), () -> {
             float fallback = 0f;
             AprilTagDetection last = camera.lastReading;
             if (last == null) {return fallback;}
-            return (float)last.robotPose.getOrientation().getYaw(AngleUnit.RADIANS);
-        }, () -> odometry.getPos().r);
+            return (float)last.ftcPose.yaw / 180 * (float)Math.PI/*robotPose.getOrientation().getYaw(AngleUnit.RADIANS)*/;
+        }, () -> odometry.getPos().r - heading, () -> camera.isReading,
+                odometry::getPos,
+                () -> {
+                AprilTagDetection last = camera.lastReading;
+                return last == null || last.ftcPose == null ? 100f : (float)last.ftcPose.range;
+                })
+        ;
 
         outtakeController = new OuttakeWheelController(
                 Util.also(new DcMotorWrapper(hardwareMap.dcMotor.get("outtake flywheel"), true, MotorSpec.GOBILDA_5000_0002_0001),
                         m->m.setDirection(IMotor.Direction.REVERSE)),
                     new PIDF.BuildOpt(new PIDF.Weights(
-                            0.9f/* * 0.5f*/,
-                            0.7f/* * 0.25f*/,0.25f,
-                            1f/* * 1.75f*/,
+                            0.9f,
+                            0.7f,0.25f,
+                            1f,
                             0.1f,1
                     )),
                 () -> camera.lastReading
                 );
+
+        outtakeController.setSupplementaryMotor(
+                Util.also(new DcMotorWrapper(hardwareMap.dcMotor.get("supplementary flywheel"), false, MotorSpec.GOBILDA_5000_0002_0001), m ->
+                        m.setDirection(IMotor.Direction.FORWARD))
+        );
 
         hoodController = new HoodController(
                 new ServoWrapper(hardwareMap.servo.get("hood")),
@@ -135,7 +146,11 @@ public class ThunderclapRobot implements IRobot {
         );
 
         resetHeadingAction = new PredicateAction<>(
-                IAction.From.loop((r, b) -> imu.resetYaw()),
+                IAction.From.loop((r, b) ->
+                {
+                    heading = odometry.getPos().r;
+                    imu.resetYaw();
+                }),
                 new EmptyAction<>(),
                 (r, b) -> b
         );

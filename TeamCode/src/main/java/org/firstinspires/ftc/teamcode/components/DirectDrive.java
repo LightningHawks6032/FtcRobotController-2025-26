@@ -31,6 +31,12 @@ public class DirectDrive {
         directDriveAction.drivePowerFactor = newFactor;
     }
 
+    public Vec2Rot getLastStickInput() {
+        return Vec2Rot.zero();
+        //Vec2Rot last = splitAction.getLast();
+        //return last == null ? Vec2Rot.zero() : last;
+    }
+
     float getDrivePowerFactor() {
         return directDriveAction.drivePowerFactor;
     }

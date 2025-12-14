@@ -24,6 +24,8 @@ public class SplitAction <Ty1, Ty2, TySplit> implements IAction<Object> {
     Ty1 leftData;
     Ty2 rightData;
 
+    TySplit last;
+
     BiFunction<Ty1, Ty2, TySplit> conversionMap;
 
     class LeftSetterAction implements IAction<Ty1> {
@@ -72,21 +74,29 @@ public class SplitAction <Ty1, Ty2, TySplit> implements IAction<Object> {
     @Override
     public void init(IRobot robot, Object data) {
         if (leftData != null && rightData != null) {
-            action.init(robot, conversionMap.apply(leftData, rightData));
+            last = conversionMap.apply(leftData, rightData);
+
+            action.init(robot, last);
         }
     }
 
     @Override
     public void start(IRobot robot, Object data) {
         if (leftData != null && rightData != null) {
-            action.start(robot, conversionMap.apply(leftData, rightData));
+            last = conversionMap.apply(leftData, rightData);
+
+            action.start(robot, last);
         }
     }
 
     @Override
     public void loop(IRobot robot, Object data) {
         if (leftData != null && rightData != null) {
-            action.loop(robot, conversionMap.apply(leftData, rightData));
+            last = conversionMap.apply(leftData, rightData);
+
+            action.loop(robot, last);
         }
     }
+
+    public TySplit getLast() {return conversionMap.apply(leftData, rightData);}
 }

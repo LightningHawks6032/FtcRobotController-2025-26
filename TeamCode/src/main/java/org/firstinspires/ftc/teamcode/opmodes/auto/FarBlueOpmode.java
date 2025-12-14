@@ -5,6 +5,7 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
 import org.firstinspires.ftc.teamcode.auto.action.AutoActionSequence;
 import org.firstinspires.ftc.teamcode.auto.action.ElapsedContainer;
+import org.firstinspires.ftc.teamcode.auto.action.IActionAutoAction;
 import org.firstinspires.ftc.teamcode.auto.action.IAutoAction;
 import org.firstinspires.ftc.teamcode.auto.action.WaitAutoAction;
 import org.firstinspires.ftc.teamcode.components.IRobot;
@@ -13,12 +14,56 @@ import org.firstinspires.ftc.teamcode.components.action.LaunchAutoSequenceAction
 import org.firstinspires.ftc.teamcode.robot.Thunderclap.ThunderclapRobot;
 import org.firstinspires.ftc.teamcode.util.Pair;
 import org.firstinspires.ftc.teamcode.util.TimerWrapper;
+import org.firstinspires.ftc.teamcode.util.Vec2;
 import org.firstinspires.ftc.teamcode.util.Vec2Rot;
 
 import java.util.function.Function;
 
 @Autonomous(name="Far Blue")
 public class FarBlueOpmode extends OpMode {
+    public class SimpleBackwardTravel implements IAutoAction<ElapsedContainer> {
+
+        final static float TRANS_THRESHOLD = 5f;
+        float target;
+
+        @Override
+        public boolean isDone(float duration) {
+            float diff = robot.getOdometry().getPos().x - target ;
+            return Math.abs(diff) <= TRANS_THRESHOLD;
+        }
+
+        @Override
+        public Function<Pair<Float, IRobot>, ElapsedContainer> getDataProvider() {
+            return _elapsed -> new ElapsedContainer(_elapsed.fst);
+        }
+
+        public SimpleBackwardTravel(float _target) {
+            target = _target;
+        }
+
+        @Override
+        public void init(IRobot robot, ElapsedContainer data) {
+
+        }
+
+        @Override
+        public void start(IRobot robot, ElapsedContainer data) {
+
+        }
+
+        @Override
+        public void loop(IRobot _robot, ElapsedContainer data) {
+            Vec2Rot pos = robot.getOdometry().getPos();
+            Vec2Rot pow = new Vec2Rot(new Vec2(
+                    0,
+                    Math.signum(pos.x - target)
+            ).norm().scale(0.3f)/*.rotateOrigin((float)robot.getIMU().getAngles().getYaw())*/, 0);
+
+            telemetry.addData("power", pow.toString());
+            robot.directDrive.directDriveAction().loop(robot,pow);
+        }
+    }
+
     static class ActionAutoAction <T> implements IAutoAction<ElapsedContainer> {
 
         final float duration;
@@ -58,28 +103,80 @@ public class FarBlueOpmode extends OpMode {
         }
     }
 
+    public class SimpleRotTravel implements IAutoAction<ElapsedContainer> {
+
+        final static float TRANS_THRESHOLD = 0.1f;
+        float target;
+
+        @Override
+        public boolean isDone(float duration) {
+            float diff = robot.getOdometry().getPos().r - target ;
+            return Math.abs(diff) <= TRANS_THRESHOLD;
+        }
+
+        @Override
+        public Function<Pair<Float, IRobot>, ElapsedContainer> getDataProvider() {
+            return _elapsed -> new ElapsedContainer(_elapsed.fst);
+        }
+
+        public SimpleRotTravel(float _target) {
+            target = _target;
+        }
+
+        @Override
+        public void init(IRobot robot, ElapsedContainer data) {
+
+        }
+
+        @Override
+        public void start(IRobot robot, ElapsedContainer data) {
+
+        }
+
+        @Override
+        public void loop(IRobot _robot, ElapsedContainer data) {
+            Vec2Rot pos = robot.getOdometry().getPos();
+            Vec2Rot pow = new Vec2Rot(
+                    0,0,
+                    -Math.signum(pos.x - target) * 0.3f);
+
+            telemetry.addData("power", pow.toString());
+            robot.directDrive.directDriveAction().loop(robot,pow);
+        }
+    }
+
+
     LaunchAutoSequenceAction<ElapsedContainer> actionExecutor;
     TimerWrapper timer;
     AutoActionSequence<ElapsedContainer> getSequence() {
         return new AutoActionSequence<>(
                 new WaitAutoAction(1.5f),
-                new FarRedOpmode.ActionAutoAction<>(0.1f, robot.intakeController.motorPowerToggleAction(), it -> true),
-                new FarRedOpmode.ActionAutoAction<>(0.1f, robot.intakeController.motorPowerToggleAction(), it -> false),
-                new FarRedOpmode.ActionAutoAction<>(0.1f, robot.resetHeadingAction, it -> true),
-                new FarRedOpmode.ActionAutoAction<>(1.47f, robot.directDrive.directDriveAction(), it -> new Vec2Rot(0, 1, 0)),
-
-                //new LocalizationDisplacement(new Vec2Rot(0, 24 * 5, 0), transControlBuild, rotControlBuild.build()),
-                new FarRedOpmode.ActionAutoAction<>(0.1f, robot.directDrive.directDriveAction(), it -> new Vec2Rot(0, 0, 0)),
+                new IActionAutoAction<>(0.1f, robot.intakeController.motorPowerToggleAction(), it -> true),
+                new IActionAutoAction<>(0.1f, robot.resetHeadingAction, it -> true),
+                new SimpleBackwardTravel(-0.5f*(float)Math.sqrt(2*24*24)),
+                new IActionAutoAction<>(0.1f, robot.directDrive.directDriveAction(), it -> new Vec2Rot(0, 0, 0)),
                 new WaitAutoAction(1.5f),
-                new FarRedOpmode.ActionAutoAction<>(0.2f, robot.directDrive.directDriveAction(), it -> new Vec2Rot(0, 0, -1)),
-                new FarRedOpmode.ActionAutoAction<>(0.1f, robot.directDrive.directDriveAction(), it -> new Vec2Rot(0, 0, 0)),
-                new FarRedOpmode.ActionAutoAction<>(0.1f, robot.outtakeController.stateMachineIdleToggleAction(), it -> true),
-                new FarRedOpmode.ActionAutoAction<>(0.1f, robot.outtakeController.stateMachineIdleToggleAction(), it -> false),
+                new SimpleRotTravel(0.174f * 1.3f),
+                new IActionAutoAction<>(0.1f, robot.directDrive.directDriveAction(), it -> new Vec2Rot(0, 0, 0)),
+                new IActionAutoAction<>(0.1f, robot.outtakeController.stateMachineIdleToggleAction(), it -> true),
+                new IActionAutoAction<>(0.1f, robot.outtakeController.stateMachineIdleToggleAction(), it -> false),
+                new IActionAutoAction<>(0.1f, robot.directDrive.directDriveAction(), it -> new Vec2Rot(0, 0, 0)),
                 new WaitAutoAction(2f),
-                new FarRedOpmode.ActionAutoAction<>(5f, robot.transferController.transferPowerAction(), it -> 1f),
-                new FarRedOpmode.ActionAutoAction<>(0.1f, robot.transferController.transferPowerAction(), it -> 0f),
-                new FarRedOpmode.ActionAutoAction<>(1.5f, robot.directDrive.directDriveAction(), it -> new Vec2Rot(-0.5f, -0.5f, 0f)),
-                new FarRedOpmode.ActionAutoAction<>(0.1f, robot.directDrive.directDriveAction(), it -> new Vec2Rot(0, 0, 0))
+                // pulse
+                new IActionAutoAction<>(1f, robot.transferController.transferPowerAction(), it -> 1f),
+                new IActionAutoAction<>(1.5f, robot.transferController.transferPowerAction(), it -> 0f),
+                new IActionAutoAction<>(1f, robot.transferController.transferPowerAction(), it -> 1f),
+                new IActionAutoAction<>(1.5f, robot.transferController.transferPowerAction(), it -> 0f),
+                new IActionAutoAction<>(1f, robot.transferController.transferPowerAction(), it -> 1f),
+                new IActionAutoAction<>(1.5f, robot.transferController.transferPowerAction(), it -> 0f),
+                new IActionAutoAction<>(1f, robot.transferController.transferPowerAction(), it -> 1f),
+                new IActionAutoAction<>(1.5f, robot.transferController.transferPowerAction(), it -> 0f),
+                new IActionAutoAction<>(1f, robot.transferController.transferPowerAction(), it -> 1f),
+                new IActionAutoAction<>(1.5f, robot.transferController.transferPowerAction(), it -> 0f),
+                new IActionAutoAction<>(1.5f, robot.directDrive.directDriveAction(), it -> new Vec2Rot(-0.5f, 0.5f, 0f)),
+                new IActionAutoAction<>(0.1f, robot.directDrive.directDriveAction(), it -> new Vec2Rot(0, 0, 0)),
+
+                new WaitAutoAction(30f)
         );
     }
 
@@ -100,6 +197,8 @@ public class FarBlueOpmode extends OpMode {
         robot.outtakeController.stateMachineAction().loop(robot, 0);
         robot.outtakeController.controlLoopAction().loop(robot, timer.get());
         robot.outtakeController.stateMachineControlLoopAction().loop(robot, timer.get());
+        robot.getOdometry().loop(timer.get());
+        robot.stateMachineDrive.controlLoopAction().loop(robot, timer.get());
         actionExecutor.loop(robot, true);
         timer.reset();
     }

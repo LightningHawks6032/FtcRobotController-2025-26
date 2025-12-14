@@ -14,6 +14,7 @@ public class IntakeWheelController implements WithTelemetry.IWithTelemetry {
 
     DcMotorWrapper motor;
     STATE state;
+    STATE lastState;
 
     LazyInit<IAction<Boolean>> motorPowerToggle;
     public IAction<Boolean> motorPowerToggleAction() {return motorPowerToggle.get();}
@@ -31,24 +32,33 @@ public class IntakeWheelController implements WithTelemetry.IWithTelemetry {
             motor.setPower(1f);
         }
         else if (!up && state == STATE.SYNCTRANSFER) {
-            motor.setPower(0f);
-            state = STATE.OFF;
+            if (lastState == STATE.IN) {
+                motor.setPower(1f);
+                state = lastState;
+            }
+            else if (lastState == STATE.OFF) {
+                motor.setPower(0f);
+                state = lastState;
+            }
         }
     }
 
     public IntakeWheelController(DcMotorWrapper _motor) {
         motor = _motor;
         state = STATE.OFF;
+        lastState = state;
 
         motorPowerToggle = new LazyInit<>(() -> new ToggleAction().build(
             IAction.From.loop((r, b) -> {
                 if (b && state == STATE.OFF) {
                     motor.setPower(1f);
                     state = STATE.IN;
+                    lastState = state;
                 }
                 else if (!b && state == STATE.IN) {
                     motor.setPower(0f);
                     state = STATE.OFF;
+                    lastState = state;
                 }
             })
         ));
@@ -62,6 +72,7 @@ public class IntakeWheelController implements WithTelemetry.IWithTelemetry {
                     else if (state == STATE.EJECT) {
                         motor.setPower(0f);
                         state = STATE.OFF;
+                        lastState = state;
                     }
                 }
         ));

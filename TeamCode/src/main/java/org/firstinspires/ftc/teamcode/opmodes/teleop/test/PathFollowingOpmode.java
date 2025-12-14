@@ -23,6 +23,7 @@ import org.firstinspires.ftc.teamcode.robot.ClankerHawk2A.ClankerHawk2A;
 import org.firstinspires.ftc.teamcode.robot.Thunderclap.ThunderclapRobot;
 import org.firstinspires.ftc.teamcode.util.Pair;
 import org.firstinspires.ftc.teamcode.util.TimerWrapper;
+import org.firstinspires.ftc.teamcode.util.Util;
 import org.firstinspires.ftc.teamcode.util.Vec2;
 import org.firstinspires.ftc.teamcode.util.Vec2Rot;
 
@@ -40,13 +41,13 @@ public class PathFollowingOpmode extends OpMode {
     PIDF.Controller pidX, pidY;
     ThunderclapRobot robot;
     DirectDrive driveAction;
-    Vec2 fixed = new Vec2(150, 150);
+    Vec2 fixed = new Vec2(0, 2 * (float)Math.sqrt(2 * 24 * 24));
 
     LaunchAutoSequenceAction<ElapsedContainer> actionExecutor;
 
     class LocalizationTravel implements IAutoAction<ElapsedContainer> {
 
-        final static float TRANS_THRESHOLD = 5f;
+        final static float TRANS_THRESHOLD = 20f;
         Vec2 target;
 
         @Override
@@ -77,21 +78,66 @@ public class PathFollowingOpmode extends OpMode {
         @Override
         public void loop(IRobot _robot, ElapsedContainer data) {
             Vec2Rot pos = robot.getOdometry().getPos();
-            robot.directDrive.directDriveAction().loop(robot,
-                    new Vec2Rot(
-                            pidX.loop(pos.x, target.x, loopTimer.get()),
-                            pidY.loop(pos.y, target.y, loopTimer.get()),
-                            0
-                    )
-            );
+            Vec2Rot pow = new Vec2Rot(new Vec2(
+                    pidX.loop(pos.x, target.x, loopTimer.get()),
+                    pidY.loop(pos.y, target.y, loopTimer.get())
+            ).norm().scale(0.3f)/*.rotateOrigin((float)robot.getIMU().getAngles().getYaw())*/, 0);
+
+            telemetry.addData("power", pow.toString());
+            robot.directDrive.directDriveAction().loop(robot,pow);
         }
     }
+
+    public class SimpleBackwardTravel implements IAutoAction<ElapsedContainer> {
+
+        final static float TRANS_THRESHOLD = 5f;
+        float target;
+
+        @Override
+        public boolean isDone(float duration) {
+            float diff = robot.getOdometry().getPos().x - target ;
+            return Math.abs(diff) <= TRANS_THRESHOLD;
+        }
+
+        @Override
+        public Function<Pair<Float, IRobot>, ElapsedContainer> getDataProvider() {
+            return _elapsed -> new ElapsedContainer(_elapsed.fst);
+        }
+
+        public SimpleBackwardTravel(float _target) {
+            target = _target;
+        }
+
+        @Override
+        public void init(IRobot robot, ElapsedContainer data) {
+
+        }
+
+        @Override
+        public void start(IRobot robot, ElapsedContainer data) {
+
+        }
+
+        @Override
+        public void loop(IRobot _robot, ElapsedContainer data) {
+            Vec2Rot pos = robot.getOdometry().getPos();
+            Vec2Rot pow = new Vec2Rot(new Vec2(
+                    0,
+                    Math.signum(pos.x - target)
+            ).norm().scale(0.3f)/*.rotateOrigin((float)robot.getIMU().getAngles().getYaw())*/, 0);
+
+            telemetry.addData("power", pow.toString());
+            robot.directDrive.directDriveAction().loop(robot,pow);
+        }
+    }
+
 
     AutoActionSequence<ElapsedContainer> getSequence() {
         return new AutoActionSequence<>(
                 // add localization displacement
                 new WaitAutoAction(1f),
-                new LocalizationTravel(fixed),
+                new IActionAutoAction<>(0.1f, robot.resetHeadingAction, t -> true),
+                new SimpleBackwardTravel(4*(float)Math.sqrt(2*24*24)),
                 new IActionAutoAction<>(0.1f, robot.directDrive.directDriveAction(), (t) -> new Vec2Rot(0,0,0))
         );
     }
@@ -103,10 +149,10 @@ public class PathFollowingOpmode extends OpMode {
         loopTimer = new TimerWrapper();
 
         pidX = new PIDF.Controller(
-                new PIDF.Weights(0.0035f, 0f, 0.1f, 0, 0.3f, 0.1f)
+                new PIDF.Weights(0.5f, 0.1f, 0.05f, 0, 0.1f, 1f)
         );
         pidY = new PIDF.Controller(
-                new PIDF.Weights(0.0035f, 0f, 0.1f, 0, 0.3f, 0.1f)
+                new PIDF.Weights(0.5f, 0.1f, 0.05f, 0, 0.1f, 1f)
         );
 
         paths = new LinkedList<>(Arrays.asList(
@@ -128,7 +174,14 @@ public class PathFollowingOpmode extends OpMode {
 
     @Override
     public void loop() {
+        robot.getOdometry().loop(loopTimer.get());
+
+        robot.getOdometry().getTelemetryAction().loop(robot, telemetry);
+
         actionExecutor.loop(robot, gamepad1.a);
         loopTimer.reset();
+        telemetry.addData("IMU yaw", robot.getIMU().getAngles().getYaw());
+        telemetry.addData("Odo yaw", robot.getOdometry().getPos().r);
+        telemetry.addData("dist", robot.getOdometry().getPos().asVec2().sub(fixed).mag());
     }
 }
