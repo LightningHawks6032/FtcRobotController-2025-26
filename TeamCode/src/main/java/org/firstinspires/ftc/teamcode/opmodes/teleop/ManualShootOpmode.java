@@ -50,10 +50,10 @@ public class ManualShootOpmode extends OpMode {
                                         robot.getIMU()
                                         //robot.stateMachineDrive
                                 )
-                                /*.loops(
-                                        //robot.directDrive.splitAction()
+                                .loops(
+                                        robot.directDrive.splitAction()
                                         //robot.stateMachineDrive.stateMachineAction()
-                                )*/
+                                )
                                 .timeLoops(
                                         robot.getOdometry().getLoopAction()
                                 )

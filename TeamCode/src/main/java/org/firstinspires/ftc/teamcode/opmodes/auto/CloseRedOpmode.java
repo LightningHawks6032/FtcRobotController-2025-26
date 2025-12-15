@@ -138,9 +138,6 @@ public class CloseRedOpmode extends OpMode {
                 new IActionAutoAction<>(1f, robot.transferController.transferPowerAction(), it -> 1f),
                 new IActionAutoAction<>(1.5f, robot.transferController.transferPowerAction(), it -> 0f),
                 new IActionAutoAction<>(1.5f, robot.directDrive.directDriveAction(), it -> new Vec2Rot(0.5f, 0, 0f)),
-
-                new IActionAutoAction<>(1.5f, robot.directDrive.directDriveAction(), it -> new Vec2Rot(-0.5f, -0.5f, 0f)),
-                new IActionAutoAction<>(0.1f, robot.directDrive.directDriveAction(), it -> new Vec2Rot(0, 0, 0)),
                 new WaitAutoAction(30f)
         );
     }
@@ -164,7 +161,7 @@ public class CloseRedOpmode extends OpMode {
         robot.outtakeController.stateMachineControlLoopAction().loop(robot, timer.get());
         robot.hoodController.setHoodPositionDistanceAction().loop(robot, 0);
         robot.getOdometry().loop(timer.get());
-        robot.stateMachineDrive.controlLoopAction().loop(robot, timer.get());
+        //robot.stateMachineDrive.controlLoopAction().loop(robot, timer.get());
         actionExecutor.loop(robot, true);
         timer.reset();
     }

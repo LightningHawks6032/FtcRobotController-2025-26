@@ -202,7 +202,7 @@ public class CloseBlueOpmode extends OpMode {
         robot.outtakeController.stateMachineControlLoopAction().loop(robot, timer.get());
         robot.hoodController.setHoodPositionDistanceAction().loop(robot, 0);
         robot.getOdometry().loop(timer.get());
-        robot.stateMachineDrive.controlLoopAction().loop(robot, timer.get());
+        //robot.stateMachineDrive.controlLoopAction().loop(robot, timer.get());
         actionExecutor.loop(robot, true);
         timer.reset();
     }

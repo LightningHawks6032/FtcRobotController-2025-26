@@ -138,7 +138,7 @@ public class FarBlueOpmode extends OpMode {
             Vec2Rot pos = robot.getOdometry().getPos();
             Vec2Rot pow = new Vec2Rot(
                     0,0,
-                    -Math.signum(pos.x - target) * 0.3f);
+                    Math.signum(pos.x - target) * 0.3f);
 
             telemetry.addData("power", pow.toString());
             robot.directDrive.directDriveAction().loop(robot,pow);
@@ -156,24 +156,22 @@ public class FarBlueOpmode extends OpMode {
                 new SimpleBackwardTravel(-0.5f*(float)Math.sqrt(2*24*24)),
                 new IActionAutoAction<>(0.1f, robot.directDrive.directDriveAction(), it -> new Vec2Rot(0, 0, 0)),
                 new WaitAutoAction(1.5f),
-                new SimpleRotTravel(0.174f * 1.3f),
+                new SimpleRotTravel((float)Math.atan2(3, 6)),
                 new IActionAutoAction<>(0.1f, robot.directDrive.directDriveAction(), it -> new Vec2Rot(0, 0, 0)),
                 new IActionAutoAction<>(0.1f, robot.outtakeController.stateMachineIdleToggleAction(), it -> true),
                 new IActionAutoAction<>(0.1f, robot.outtakeController.stateMachineIdleToggleAction(), it -> false),
                 new IActionAutoAction<>(0.1f, robot.directDrive.directDriveAction(), it -> new Vec2Rot(0, 0, 0)),
-                new WaitAutoAction(2f),
+                new WaitAutoAction(4f),
                 // pulse
                 new IActionAutoAction<>(1f, robot.transferController.transferPowerAction(), it -> 1f),
                 new IActionAutoAction<>(1.5f, robot.transferController.transferPowerAction(), it -> 0f),
                 new IActionAutoAction<>(1f, robot.transferController.transferPowerAction(), it -> 1f),
                 new IActionAutoAction<>(1.5f, robot.transferController.transferPowerAction(), it -> 0f),
                 new IActionAutoAction<>(1f, robot.transferController.transferPowerAction(), it -> 1f),
-                new IActionAutoAction<>(1.5f, robot.transferController.transferPowerAction(), it -> 0f),
+                new IActionAutoAction<>(3f, robot.transferController.transferPowerAction(), it -> 0f),
                 new IActionAutoAction<>(1f, robot.transferController.transferPowerAction(), it -> 1f),
                 new IActionAutoAction<>(1.5f, robot.transferController.transferPowerAction(), it -> 0f),
-                new IActionAutoAction<>(1f, robot.transferController.transferPowerAction(), it -> 1f),
-                new IActionAutoAction<>(1.5f, robot.transferController.transferPowerAction(), it -> 0f),
-                new IActionAutoAction<>(1.5f, robot.directDrive.directDriveAction(), it -> new Vec2Rot(-0.5f, 0.5f, 0f)),
+                new IActionAutoAction<>(1.5f, robot.directDrive.directDriveAction(), it -> new Vec2Rot(-0.0f, 0.5f, 0f)),
                 new IActionAutoAction<>(0.1f, robot.directDrive.directDriveAction(), it -> new Vec2Rot(0, 0, 0)),
 
                 new WaitAutoAction(30f)
@@ -195,10 +193,12 @@ public class FarBlueOpmode extends OpMode {
     public void loop() {
         robot.camera.cameraDetectAction().loop(robot, 0);
         robot.outtakeController.stateMachineAction().loop(robot, 0);
+        robot.directDrive.splitAction().loop(robot, 0);
         robot.outtakeController.controlLoopAction().loop(robot, timer.get());
         robot.outtakeController.stateMachineControlLoopAction().loop(robot, timer.get());
+        //robot.stateMachineDrive.controlLoopAction().loop(robot, timer.get());
+        robot.intakeController.getTelemetryAction().loop(robot, telemetry);
         robot.getOdometry().loop(timer.get());
-        robot.stateMachineDrive.controlLoopAction().loop(robot, timer.get());
         actionExecutor.loop(robot, true);
         timer.reset();
     }

@@ -222,21 +222,19 @@ public class FarRedOpmode extends OpMode {
                 new SimpleBackwardTravel(-0.5f*(float)Math.sqrt(2*24*24)),
                 new IActionAutoAction<>(0.1f, robot.directDrive.directDriveAction(), it -> new Vec2Rot(0, 0, 0)),
                 new WaitAutoAction(1.5f),
-                new SimpleRotTravel(-0.174f * 1.3f),
+                new SimpleRotTravel(-(float)Math.atan2(3, 6)+0.05f),
                 new IActionAutoAction<>(0.1f, robot.directDrive.directDriveAction(), it -> new Vec2Rot(0, 0, 0)),
                 new IActionAutoAction<>(0.1f, robot.outtakeController.stateMachineIdleToggleAction(), it -> true),
                 new IActionAutoAction<>(0.1f, robot.outtakeController.stateMachineIdleToggleAction(), it -> false),
                 new IActionAutoAction<>(0.1f, robot.directDrive.directDriveAction(), it -> new Vec2Rot(0, 0, 0)),
-                new WaitAutoAction(2f),
+                new WaitAutoAction(6f),
 // pulse
                 new IActionAutoAction<>(1f, robot.transferController.transferPowerAction(), it -> 1f),
                 new IActionAutoAction<>(1.5f, robot.transferController.transferPowerAction(), it -> 0f),
                 new IActionAutoAction<>(1f, robot.transferController.transferPowerAction(), it -> 1f),
                 new IActionAutoAction<>(1.5f, robot.transferController.transferPowerAction(), it -> 0f),
                 new IActionAutoAction<>(1f, robot.transferController.transferPowerAction(), it -> 1f),
-                new IActionAutoAction<>(1.5f, robot.transferController.transferPowerAction(), it -> 0f),
-                new IActionAutoAction<>(1f, robot.transferController.transferPowerAction(), it -> 1f),
-                new IActionAutoAction<>(1.5f, robot.transferController.transferPowerAction(), it -> 0f),
+                new IActionAutoAction<>(4f, robot.transferController.transferPowerAction(), it -> 0f),
                 new IActionAutoAction<>(1f, robot.transferController.transferPowerAction(), it -> 1f),
                 new IActionAutoAction<>(1.5f, robot.transferController.transferPowerAction(), it -> 0f),
 
@@ -267,7 +265,7 @@ public class FarRedOpmode extends OpMode {
         robot.outtakeController.stateMachineAction().loop(robot, 0);
         robot.outtakeController.controlLoopAction().loop(robot, timer.get());
         robot.outtakeController.stateMachineControlLoopAction().loop(robot, timer.get());
-        robot.stateMachineDrive.controlLoopAction().loop(robot, timer.get());
+        //robot.stateMachineDrive.controlLoopAction().loop(robot, timer.get());
         robot.intakeController.getTelemetryAction().loop(robot, telemetry);
         robot.getOdometry().loop(timer.get());
         actionExecutor.loop(robot, true);
