@@ -111,10 +111,10 @@ public class ThunderclapRobot implements IRobot {
                 Util.also(new DcMotorWrapper(hardwareMap.dcMotor.get("outtake flywheel"), true, MotorSpec.GOBILDA_5000_0002_0001),
                         m->m.setDirection(IMotor.Direction.REVERSE)),
                     new PIDF.BuildOpt(new PIDF.Weights(
-                            0.9f,
-                            0.7f,0.25f,
-                            1f,
-                            0.1f,1
+                                0.9f,
+                                0.7f,0.25f,
+                                1f,
+                                0.1f,1
                     )),
                 () -> camera.lastReading
                 );

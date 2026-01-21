@@ -27,7 +27,7 @@ public class LookAtAngleOpmode extends OpMode {
         timer = new TimerWrapper();
         control = new PIDF.Controller(
                 new PIDF.Weights(
-                        1f, 0.1f,0.05f,0f,0.01f,1
+                        1f, 0.2f,0.1f,0f,0.00f,1
 
                 )
         );
@@ -40,7 +40,7 @@ public class LookAtAngleOpmode extends OpMode {
         robot.getOdometry().loop(timer.get());
 
         if (gamepad1.left_stick_x != 0 || gamepad1.left_stick_y != 0) {
-            desiredAngle = /*180 / (float)Math.PI */ Util.normAngle2Pi((float)Math.atan2(gamepad1.left_stick_y, gamepad1.left_stick_x));
+            desiredAngle = /*180 / (float)Math.PI */ Util.normAngle2Pi((float)Math.PI/2-(float)Math.atan2(gamepad1.left_stick_y, gamepad1.left_stick_x));
         }
         else {desiredAngle = 0f;}
 
