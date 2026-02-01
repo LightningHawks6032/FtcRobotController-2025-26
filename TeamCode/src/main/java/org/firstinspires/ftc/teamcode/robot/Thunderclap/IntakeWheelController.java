@@ -4,6 +4,7 @@ import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.components.action.IAction;
 import org.firstinspires.ftc.teamcode.components.action.ToggleAction;
 import org.firstinspires.ftc.teamcode.hardware.DcMotorWrapper;
+import org.firstinspires.ftc.teamcode.hardware.ServoWrapper;
 import org.firstinspires.ftc.teamcode.util.LazyInit;
 import org.firstinspires.ftc.teamcode.util.WithTelemetry;
 
@@ -82,8 +83,13 @@ public class IntakeWheelController implements WithTelemetry.IWithTelemetry {
                 telem -> {
                     telem.addData("State", state.toString());
                     telem.addData("Motor power", motor.getPower());
+                    telem.addData("motor current (amp)", motor.getCurrent());
                 }
         ));
+    }
+
+    public float getMotorCurrent() {
+        return motor.getCurrent();
     }
 
     LazyInit<IAction<Telemetry>> telemetryAction;

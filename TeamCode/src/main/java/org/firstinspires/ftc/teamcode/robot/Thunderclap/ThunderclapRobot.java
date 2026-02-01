@@ -5,14 +5,19 @@ import androidx.annotation.NonNull;
 import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.IMU;
+import com.qualcomm.robotcore.hardware.NormalizedColorSensor;
 
-import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.teamcode.auto.action.AutoActionSequence;
+import org.firstinspires.ftc.teamcode.auto.action.ElapsedContainer;
+import org.firstinspires.ftc.teamcode.auto.action.IActionAutoAction;
 import org.firstinspires.ftc.teamcode.components.DirectDrive;
 import org.firstinspires.ftc.teamcode.components.IRobot;
 import org.firstinspires.ftc.teamcode.components.action.EmptyAction;
 import org.firstinspires.ftc.teamcode.components.action.IAction;
+import org.firstinspires.ftc.teamcode.components.action.LaunchAutoSequenceAction;
 import org.firstinspires.ftc.teamcode.components.action.PredicateAction;
 import org.firstinspires.ftc.teamcode.control.PIDF;
+import org.firstinspires.ftc.teamcode.hardware.ColorSensorWrapper;
 import org.firstinspires.ftc.teamcode.hardware.DcMotorWrapper;
 import org.firstinspires.ftc.teamcode.hardware.IMotor;
 import org.firstinspires.ftc.teamcode.hardware.InternalIMUWrapper;
@@ -22,9 +27,8 @@ import org.firstinspires.ftc.teamcode.hardware.drive.DriveMotors;
 import org.firstinspires.ftc.teamcode.hardware.drive.IIMU;
 import org.firstinspires.ftc.teamcode.hardware.drive.odometry.IOdometry;
 import org.firstinspires.ftc.teamcode.hardware.drive.odometry.PinpointOdometry;
-import org.firstinspires.ftc.teamcode.hardware.drive.odometry.TwoWheelOdometry;
+import org.firstinspires.ftc.teamcode.util.ButtonCounter;
 import org.firstinspires.ftc.teamcode.util.Util;
-import org.firstinspires.ftc.teamcode.util.Vec2;
 import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
 
 public class ThunderclapRobot implements IRobot {
@@ -39,13 +43,24 @@ public class ThunderclapRobot implements IRobot {
 
     public final IntakeWheelController intakeController;
 
-    public final TransferWheelController transferController;
+    //public final TransferWheelController transferController;
 
     public final HoodController hoodController;
 
     public final InternalCameraWrapper camera;
 
     public final IAction<Boolean> resetHeadingAction;
+
+    public TransferWheelController transferController;
+
+    public final ColorSensorWrapper colorSensor;
+    public final SpindexerController.TargetPositionCommander spindexerCommander;
+    public SpindexerController.SpindexerPositionController spindexerController;
+    public final SpindexerController.BallStateDeterminer ballStateDeterminer;
+    public final KickerController kickerController;
+    public final IntakeSwingController intakeSwingController;
+    public final IntakeAutomationController intakeAutomationController;
+    public ButtonCounter leftSpindexer, rightSpindexer;
 
     @Override
     public DriveMotors getDrive() {
@@ -108,8 +123,8 @@ public class ThunderclapRobot implements IRobot {
         ;
 
         outtakeController = new OuttakeWheelController(
-                Util.also(new DcMotorWrapper(hardwareMap.dcMotor.get("outtake flywheel"), true, MotorSpec.GOBILDA_5000_0002_0001),
-                        m->m.setDirection(IMotor.Direction.REVERSE)),
+                Util.also(new DcMotorWrapper(hardwareMap.dcMotor.get("supplementary flywheel"), true, MotorSpec.GOBILDA_5002_0002_0001), m ->
+                    m.setDirection(IMotor.Direction.FORWARD)),
                     new PIDF.BuildOpt(new PIDF.Weights(
                                 0.9f,
                                 0.7f,0.25f,
@@ -120,8 +135,8 @@ public class ThunderclapRobot implements IRobot {
                 );
 
         outtakeController.setSupplementaryMotor(
-                Util.also(new DcMotorWrapper(hardwareMap.dcMotor.get("supplementary flywheel"), false, MotorSpec.GOBILDA_5000_0002_0001), m ->
-                        m.setDirection(IMotor.Direction.FORWARD))
+                Util.also(new DcMotorWrapper(hardwareMap.dcMotor.get("outtake flywheel"), true, MotorSpec.GOBILDA_5002_0002_0001),
+                        m->m.setDirection(IMotor.Direction.REVERSE))
         );
 
         hoodController = new HoodController(
@@ -137,13 +152,45 @@ public class ThunderclapRobot implements IRobot {
         );
 
         intakeController = new IntakeWheelController(
-                new DcMotorWrapper(hardwareMap.dcMotor.get("intake flywheel"), false, MotorSpec.GOBILDA_5203_2402_0019)
+                Util.also(new DcMotorWrapper(hardwareMap.dcMotor.get("intake flywheel"), false, MotorSpec.GOBILDA_5203_2402_0019),
+                        it -> it.setDirection(IMotor.Direction.REVERSE))
         );
 
-        transferController = new TransferWheelController(
+        /*transferController = new TransferWheelController(
                 new ServoWrapper(hardwareMap.servo.get("transfer flywheel")),
                 intakeController::trySyncTransferLift
+        );*/
+
+        colorSensor = new ColorSensorWrapper(hardwareMap.get(NormalizedColorSensor.class, "color sensor"));
+        colorSensor.setGain(10);
+
+        leftSpindexer = new ButtonCounter();
+        rightSpindexer = new ButtonCounter();
+
+        spindexerCommander = new SpindexerController.TargetPositionCommander();
+        spindexerController = new SpindexerController.SpindexerPositionController(
+                new PIDF.Weights(/*50,1.2f,1*/0.03f, 0.0f, 0.000f,0,0f,1),
+                Util.also(new DcMotorWrapper(hardwareMap.dcMotor.get("spindexer"), true,
+                        MotorSpec.GOBILDA_5203_2402_0019), m -> m.setDirection(IMotor.Direction.FORWARD)),
+                () -> {
+                    int idx = leftSpindexer.count() - rightSpindexer.count();
+                    if (idx < 0) {
+                        idx += -3 * idx;
+                    }
+                    idx %= 3;
+                    return spindexerCommander.getPosFromIndex(idx);
+                }
         );
+
+        ballStateDeterminer = new SpindexerController.BallStateDeterminer(colorSensor::getColor);
+
+
+
+        kickerController = new KickerController(new ServoWrapper(hardwareMap.servo.get("kicker")));
+
+        intakeSwingController = new IntakeSwingController(new ServoWrapper(hardwareMap.servo.get("intake servo")));
+
+        intakeAutomationController = new IntakeAutomationController(this);
 
         resetHeadingAction = new PredicateAction<>(
                 IAction.From.loop((r, b) ->

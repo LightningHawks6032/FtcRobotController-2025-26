@@ -106,7 +106,7 @@ public class OuttakeWheelController implements WithTelemetry.IWithTelemetry {
         public final IAction<Object> stateMachineAction;
 
 
-        final float IDLE_SPIN_POWER = -0.3f;
+        final float IDLE_SPIN_POWER = 0f;
 
 
         public StateMachineControl(DistanceSpeedComputer _speedComputer, IControlLoop _controlLoop) {
@@ -131,7 +131,7 @@ public class OuttakeWheelController implements WithTelemetry.IWithTelemetry {
                     });
 
             controlSpeedToggle = new Toggle(false);
-            isIdleToggle = new Toggle(true);
+            isIdleToggle = new Toggle(false);
 
             stateMachine = new ActionStateMachine<>((state) -> {
                 switch (state) {
@@ -184,7 +184,7 @@ public class OuttakeWheelController implements WithTelemetry.IWithTelemetry {
                     controlSpeedToggle::toggle
             );
 
-            stateMachine.setCurrentNode(StateMachineControlState.IDLE);
+            stateMachine.setCurrentNode(StateMachineControlState.DISTANCE);
 
 
             controlSpeedToggleAction = IAction.From.loop((r, b) -> controlSpeedToggle.loop(b));

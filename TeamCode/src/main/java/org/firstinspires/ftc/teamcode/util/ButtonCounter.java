@@ -1,15 +1,17 @@
 package org.firstinspires.ftc.teamcode.util;
 
-public class Toggle {
+public class ButtonCounter {
     boolean toggle, hasLetGo;
-    public boolean toggle() {return toggle;}
-    public void setToggle(boolean next) {toggle = next;}
+    int count = 0;
+    //public boolean toggle() {return toggle;}
+    public int count() {return count;}
+    //public void setToggle(boolean next) {toggle = next;}
 
-    public Toggle() {
+    public ButtonCounter() {
         toggle = false;
         hasLetGo = true;
     }
-    public Toggle(boolean _toggle) {
+    public ButtonCounter(boolean _toggle) {
         this();
         toggle = _toggle;
     }
@@ -20,6 +22,7 @@ public class Toggle {
         }
         else if (hasLetGo) {
             toggle = !toggle;
+            count++;
             hasLetGo = false;
         }
     }

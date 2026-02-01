@@ -2,7 +2,6 @@ package org.firstinspires.ftc.teamcode.robot.ClankerHawk2A;
 
 import androidx.annotation.NonNull;
 
-import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.IMU;
 
@@ -22,7 +21,6 @@ import org.firstinspires.ftc.teamcode.hardware.ServoWrapper;
 import org.firstinspires.ftc.teamcode.hardware.drive.DriveMotors;
 import org.firstinspires.ftc.teamcode.hardware.drive.IIMU;
 import org.firstinspires.ftc.teamcode.hardware.drive.odometry.IOdometry;
-import org.firstinspires.ftc.teamcode.hardware.drive.odometry.PinpointOdometry;
 import org.firstinspires.ftc.teamcode.hardware.drive.odometry.ThreeWheelOdometry;
 import org.firstinspires.ftc.teamcode.opmodes.teleop.test.DriveMotorTestOpmode;
 import org.firstinspires.ftc.teamcode.util.Util;
@@ -133,7 +131,7 @@ public class ClankerHawk2A implements IRobot {
 
         flywheelController = new FlywheelController(
                 Util.also(
-                        new DcMotorWrapper(hardwareMap.dcMotor.get("flywheel"), true, MotorSpec.GOBILDA_5000_0002_0001),
+                        new DcMotorWrapper(hardwareMap.dcMotor.get("flywheel"), true, MotorSpec.GOBILDA_5002_0002_0001),
                         f -> f.setDirection(IMotor.Direction.REVERSE)
                 ),
                 new ServoWrapper(hardwareMap.servo.get("hood"))

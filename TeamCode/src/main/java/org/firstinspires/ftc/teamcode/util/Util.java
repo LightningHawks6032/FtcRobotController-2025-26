@@ -23,13 +23,14 @@ public class Util {
         return f;
     }
 
-    /// Normalizes angle between [-pi/2, pi/2]
+    /// Normalizes angle between [-pi, pi]
     public static float normAngle(float a) {
-        while (a < -Math.PI / 2) { a += (float)(2 * Math.PI);}
-        while (a > Math.PI / 2) {a -= (float)(2 * Math.PI);}
+        while (a < -Math.PI) { a += (float)(2 * Math.PI);}
+        while (a > Math.PI) {a -= (float)(2 * Math.PI);}
         return a;
     }
 
+    // Normalizes angle between [0, 2pi]
     public static float normAngle2Pi(float a) {
         while (a < 0) {a += (float)(2 * Math.PI);}
         while (a > 2 * Math.PI) {a -= (float)(2 * Math.PI);}

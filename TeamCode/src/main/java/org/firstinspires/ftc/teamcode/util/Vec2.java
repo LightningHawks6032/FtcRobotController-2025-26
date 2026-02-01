@@ -48,4 +48,5 @@ public class Vec2 {
     }
 
     public static Vec2 zero() {return new Vec2(0, 0);}
+    public Vec2Rot asVec2Rot() {return new Vec2Rot(x, y, 0);}
 }

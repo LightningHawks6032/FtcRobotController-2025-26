@@ -23,7 +23,7 @@ public class OuttakeMotorTestOpmode extends OpMode {
     public void init() {
         DcMotor temp = hardwareMap.dcMotor.get("flywheel");
         temp.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
-        motor1 = new DcMotorWrapper(temp, true, MotorSpec.GOBILDA_5000_0002_0001);
+        motor1 = new DcMotorWrapper(temp, true, MotorSpec.GOBILDA_5002_0002_0001);
         motor2 = new DebugMotor("yo", telemetry, null);//(DcMotorEx) hardwareMap.dcMotor.get("motor2");
         motor_power = 0;
         lock = false;

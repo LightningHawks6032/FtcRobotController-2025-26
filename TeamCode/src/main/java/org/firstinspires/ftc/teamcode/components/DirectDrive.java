@@ -114,7 +114,7 @@ public class DirectDrive {
 
     static class SpeedModeAction {
         enum SPEED {
-            NORMAL(0.8f), SLOW(0.3f), FAST(1f);
+            NORMAL(0.8f), SLOW(0.4f), FAST(1f);
 
             public float speed;
 

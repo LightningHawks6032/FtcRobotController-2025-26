@@ -8,7 +8,9 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
+import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
 import org.firstinspires.ftc.teamcode.components.action.IAction;
+import org.firstinspires.ftc.teamcode.util.Util;
 import org.firstinspires.ftc.teamcode.util.WithTelemetry;
 
 public class DcMotorWrapper implements IMotor {
@@ -74,7 +76,7 @@ public class DcMotorWrapper implements IMotor {
         motor = (DcMotorEx)_motor;
         motor.setDirection(DcMotorSimple.Direction.FORWARD);
         motor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE); //TODO: Fix this lmao
-        spec = _spec == null ? MotorSpec.GOBILDA_5000_0002_0001 : _spec;
+        spec = _spec == null ? MotorSpec.GOBILDA_5002_0002_0001 : _spec;
         usingEncoder = _usingEncoder;
         encoder = new Encoder();
 
@@ -132,6 +134,15 @@ public class DcMotorWrapper implements IMotor {
         return spec;
     }
 
+    /// Returns angle with respect to encoder zero position
+    public float getAngle() {
+        return Util.normAngle(getPosition() / spec.encoderResolution * ((float)Math.PI*2));
+    }
+
+    public float getAngularVelocity() {
+        return getVelocity() / spec.encoderResolution * (float)Math.PI * 2 *6;
+    }
+
 
     IAction<Telemetry> telem = new WithTelemetry.Action<WithTelemetry.ITelemetry>(
             new WithTelemetry.ITelemetry() {
@@ -148,6 +159,10 @@ public class DcMotorWrapper implements IMotor {
                 }
             }
     );
+
+    public float getCurrent() {
+        return (float)motor.getCurrent(CurrentUnit.AMPS);
+    }
     @Override
     public IAction<Telemetry> getTelemetryAction() {
         return telem;
